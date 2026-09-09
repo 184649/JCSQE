@@ -1,14 +1,18 @@
 {
   "name": "JCSQE Dojo",
   "short_name": "JCSQE Dojo",
-  "description": "JCSQE初級向けのモバイル学習PWA",
+  "description": "JCSQE初級のローカルファースト学習PWA",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f4f6",
-  "theme_color": "#111827",
-  "lang": "ja",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
   "icons": [
-    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }

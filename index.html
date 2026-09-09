@@ -1,110 +1,20 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <meta name="description" content="JCSQE初級向けのモバイル学習PWA。1問演習、弱点優先、模擬試験、オフライン対応。" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JCSQE Dojo">
   <title>JCSQE Dojo</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <header class="app-header">
-    <div>
-      <p class="eyebrow">JCSQE BEGINNER</p>
-      <h1>JCSQE Dojo</h1>
-    </div>
-    <button id="installBtn" class="ghost hidden">ホーム画面に追加</button>
-  </header>
-
-  <main id="app" class="container">
-    <section id="homeView" class="view active">
-      <div class="hero card">
-        <div>
-          <p class="muted">試験まで</p>
-          <div class="countdown"><span id="daysLeft">--</span><small>日</small></div>
-          <p class="muted">2026年11月14日</p>
-        </div>
-        <div class="hero-score">
-          <p class="muted">総合正答率</p>
-          <strong id="overallRate">--%</strong>
-          <small id="answeredCount">0問回答</small>
-        </div>
-      </div>
-
-      <section class="card">
-        <h2>今日の学習</h2>
-        <div class="mode-grid">
-          <button class="mode primary" data-mode="adaptive">
-            <span class="mode-title">弱点優先 10問</span>
-            <span class="mode-sub">苦手分野を自動で多めに出題</span>
-          </button>
-          <button class="mode" data-mode="random">
-            <span class="mode-title">ランダム 10問</span>
-            <span class="mode-sub">全分野から均等に出題</span>
-          </button>
-          <button class="mode" data-mode="wrong">
-            <span class="mode-title">間違い復習</span>
-            <span class="mode-sub">過去に間違えた問題だけ</span>
-          </button>
-          <button class="mode" data-mode="exam">
-            <span class="mode-title">模擬試験 40問</span>
-            <span class="mode-sub">60分タイマー・70%基準</span>
-          </button>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-head">
-          <h2>分野別</h2>
-          <button id="resetBtn" class="text-btn">履歴リセット</button>
-        </div>
-        <div id="categoryStats" class="stats-list"></div>
-      </section>
-
-      <section class="card compact">
-        <h2>外出中でも使える</h2>
-        <p>一度開けば問題・履歴画面はオフラインでも利用できます。iPhoneではSafariの共有メニューから「ホーム画面に追加」するとアプリ風に起動できます。</p>
-      </section>
-    </section>
-
-    <section id="quizView" class="view">
-      <div class="quiz-topbar">
-        <button id="quitBtn" class="ghost">終了</button>
-        <div class="progress-wrap">
-          <div class="progress-meta"><span id="progressText">1 / 10</span><span id="timerText"></span></div>
-          <div class="progress"><div id="progressBar"></div></div>
-        </div>
-      </div>
-
-      <article class="card question-card">
-        <div class="question-meta">
-          <span id="categoryBadge" class="badge"></span>
-          <span id="difficultyBadge" class="badge secondary"></span>
-        </div>
-        <h2 id="questionText"></h2>
-        <div id="choices" class="choices"></div>
-        <div id="explanation" class="explanation hidden"></div>
-        <button id="nextBtn" class="primary action hidden">次の問題へ</button>
-      </article>
-    </section>
-
-    <section id="resultView" class="view">
-      <div class="card result-card">
-        <p class="eyebrow">RESULT</p>
-        <h2 id="resultTitle">学習結果</h2>
-        <div class="result-score"><span id="resultCorrect">0</span><small> / <span id="resultTotal">0</span> 問</small></div>
-        <p id="resultRate" class="result-rate"></p>
-        <p id="resultMessage" class="muted"></p>
-        <div id="resultBreakdown" class="stats-list"></div>
-        <button id="backHomeBtn" class="primary action">ホームへ戻る</button>
-      </div>
-    </section>
-  </main>
-
-  <script src="questions.js"></script>
-  <script src="app.js"></script>
+  <div id="app"></div>
+  <script src="./questions.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
