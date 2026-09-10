@@ -2,19 +2,25 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#07111f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="JCSQE Dojo">
-  <title>JCSQE Dojo</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css">
+  <meta name="apple-mobile-web-app-title" content="JCSQE〜初級〜">
+  <meta name="description" content="JCSQE初級の400問を、オフラインでも学べるサーバーレスPWA">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>JCSQE〜初級〜</title>
 </head>
 <body>
-  <div id="app"></div>
-  <script src="./questions.js"></script>
-  <script src="./app.js"></script>
+  <noscript>このアプリの利用にはJavaScriptが必要です。</noscript>
+  <div id="app" class="app-shell"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <input id="import-file" type="file" accept="application/json,.json" hidden>
+  <script src="questions.js"></script>
+  <script src="logic.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
