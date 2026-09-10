@@ -2,7 +2,7 @@
 'use strict';
 const APP_NAME='JCSQE〜初級〜';
 const STORAGE_KEY='jcsqe-shokyu-state-v3';
-const APP_VERSION=3;
+const APP_VERSION=4;
 const QUESTIONS=Array.isArray(window.JCSQE_QUESTIONS)?window.JCSQE_QUESTIONS:[];
 const L=window.JCSQELogic;
 const qMap=new Map(QUESTIONS.map(q=>[q.id,q]));
@@ -12,7 +12,9 @@ const importInput=document.getElementById('import-file');
 let route='home';
 let currentResult=null;
 let timerHandle=null;
+let storagePersistent=true;
 let state=loadState();
+
 
 function uid(){return 'p_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
 function nowIso(){return new Date().toISOString()}
@@ -29,14 +31,21 @@ function loadState(){
       if(s.activeProfileId&&!s.profiles[s.activeProfileId])s.activeProfileId=Object.keys(s.profiles)[0]||null;
     }
     return s;
-  }catch(e){console.warn('state load failed',e);return defaultState()}
+  }catch(e){console.warn('state load failed',e);storagePersistent=false;return defaultState()}
 }
-function saveState(){
-  try{state.version=APP_VERSION;localStorage.setItem(STORAGE_KEY,JSON.stringify(state));return true}catch(e){console.error(e);showToast('保存に失敗しました。ブラウザのストレージ設定を確認してください。');return false}
+function saveState(silent=false){
+  try{state.version=APP_VERSION;localStorage.setItem(STORAGE_KEY,JSON.stringify(state));storagePersistent=true;return true}catch(e){console.error(e);storagePersistent=false;if(!silent)showToast('このブラウザでは学習履歴を保存できません。通常モードで開いてください。');return false}
 }
 function profile(){return state.activeProfileId?state.profiles[state.activeProfileId]:null}
 function showToast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>toastEl.classList.remove('show'),2300)}
-function createProfile(name){const clean=String(name||'').trim().slice(0,30)||`ユーザー${Object.keys(state.profiles).length+1}`;const id=uid();state.profiles[id]=normalizeProfile({name:clean});state.activeProfileId=id;saveState();return id}
+function createProfile(name){const clean=String(name||'').trim().slice(0,30)||`ユーザー${Object.keys(state.profiles).length+1}`;const id=uid();state.profiles[id]=normalizeProfile({name:clean});state.activeProfileId=id;saveState(true);return id}
+function ensureUsableProfile(){
+  const ids=Object.keys(state.profiles);
+  if(state.activeProfileId&&state.profiles[state.activeProfileId])return state.activeProfileId;
+  if(ids.length){state.activeProfileId=ids[0];saveState(true);return ids[0];}
+  return createProfile('ユーザー1');
+}
+function renameActiveProfile(name){const p=profile();if(!p)return false;const clean=String(name||'').trim().slice(0,30);if(!clean)return false;p.name=clean;saveState();return true}
 function countdown(){const target=new Date('2026-11-14T00:00:00+09:00');const n=new Date();return Math.max(0,Math.ceil((target-n)/(86400000)))}
 function streak(history){
   const days=new Set(history.map(h=>{const d=new Date(h.timestamp);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}));
@@ -47,21 +56,19 @@ function nav(active){const items=[['home','⌂','ホーム'],['practice','✦','
 function shell(content,active=route){return header()+`<main class="page">${content}</main>`+nav(active)}
 function render(){
   stopTimer();
+  ensureUsableProfile();
   const errors=L?.validateQuestions?L.validateQuestions(QUESTIONS):['logic unavailable'];
   if(errors.length){app.innerHTML=`<div class="fatal"><b>アプリを起動できません</b><br>問題データ検証エラー: ${esc(errors.slice(0,6).join(' / '))}</div>`;return}
-  if(!profile()){renderOnboarding();return}
   try{
     if(route==='home')renderHome(); else if(route==='practice')renderPracticeMenu(); else if(route==='mock')renderMockMenu(); else if(route==='analysis')renderAnalysis(); else if(route==='profile')renderProfile(); else if(route==='quiz')renderQuiz(); else if(route==='result')renderResult(); else {route='home';renderHome()}
   }catch(e){console.error(e);app.innerHTML=shell(`<div class="fatal"><b>画面表示中にエラーが発生しました。</b><br>${esc(e.message)}<div class="spacer12"></div><button class="primary" data-action="nav" data-route="home">ホームへ戻る</button></div>`,'home')}
 }
-function renderOnboarding(){
-  app.innerHTML=`<main class="onboarding"><div><div class="onboard-logo">Q</div><div class="eyebrow">JCSQE BEGINNER</div><h1>${APP_NAME}</h1><p>400問の演習・模擬試験・弱点分析を、サーバーなしで端末内に保存します。ユーザーごとに学習データを分けられます。</p><div class="card glow"><div class="form"><label class="tiny muted" for="first-name">表示名（任意）</label><input id="first-name" class="input" maxlength="30" placeholder="例：T K"><button class="primary wide" data-action="first-start">学習をはじめる</button></div></div></div></main>`;
-}
 function renderHome(){
   const p=profile(),s=L.calculateStats(QUESTIONS,p.history),days=countdown(),st=streak(p.history),daily=L.dailySeries(p.history,1)[0]; const active=p.activeSession;
+  const persistenceBanner=storagePersistent?'':`<div class="card warning-card"><b>学習履歴を保存できないブラウザモードです</b><div class="tiny muted" style="margin-top:6px">通常のSafari / Chromeで開くと、次回も続きから学習できます。</div></div><div class="spacer12"></div>`;
   let resume=''; if(active){resume=`<div class="section-title">続きから</div><div class="card glow resume"><div><div class="pill ${active.kind==='mock'?'warn':'good'}">${active.kind==='mock'?'模擬試験':'演習'}</div><div class="action-title" style="margin-top:8px">${esc(active.title)}</div><div class="action-desc">${active.index+1}/${active.questionIds.length}問目から再開</div></div><button class="primary" data-action="resume-session">再開</button></div>`}
   const content=`<section class="hero"><div class="eyebrow">SMART STUDY</div><h1>今日も、合格に<br>近づく5問を。</h1><p>試験まで <b style="color:var(--text)">${days}日</b>。弱点を優先して、短時間でも効率よく進めます。</p></section>
-  <div class="grid two"><div class="card stat"><div class="stat-value">${s.accuracy}%</div><div class="stat-label">総合正答率</div></div><div class="card stat"><div class="stat-value">${s.answered}</div><div class="stat-label">総回答数</div></div><div class="card stat"><div class="stat-value">${daily.answered}</div><div class="stat-label">今日の回答</div></div><div class="card stat"><div class="stat-value">${st}<span class="tiny">日</span></div><div class="stat-label">連続学習</div></div></div>
+  ${persistenceBanner}<div class="grid two"><div class="card stat"><div class="stat-value">${s.accuracy}%</div><div class="stat-label">総合正答率</div></div><div class="card stat"><div class="stat-value">${s.answered}</div><div class="stat-label">総回答数</div></div><div class="card stat"><div class="stat-value">${daily.answered}</div><div class="stat-label">今日の回答</div></div><div class="card stat"><div class="stat-value">${st}<span class="tiny">日</span></div><div class="stat-label">連続学習</div></div></div>
   ${resume}<div class="section-title">すぐ始める</div><button class="action-card" data-action="start-practice" data-mode="quick"><span class="action-icon">⚡</span><span class="action-main"><span class="action-title">今日の5問</span><span class="action-desc">未回答・誤答・苦手分野を優先</span></span><span class="chev">›</span></button><div class="spacer8"></div><button class="action-card" data-action="start-practice" data-mode="weak"><span class="action-icon">◎</span><span class="action-main"><span class="action-title">弱点集中 10問</span><span class="action-desc">正答率の低い領域を重点復習</span></span><span class="chev">›</span></button>
   <div class="section-title">本番対策</div><button class="action-card" data-action="nav" data-route="mock"><span class="action-icon">◷</span><span class="action-main"><span class="action-title">60分・40問の模擬試験</span><span class="action-desc">第1〜10回、またはランダム40問</span></span><span class="chev">›</span></button>`;
   app.innerHTML=shell(content,'home');
@@ -145,16 +152,19 @@ function renderAnalysis(){
 }
 function renderProfile(){
   const p=profile();const profiles=Object.entries(state.profiles);
-  const content=`<section class="hero"><div class="eyebrow">LOCAL PROFILES</div><h1>ユーザー</h1><p>学習データはこの端末内だけに保存され、プロフィール単位で完全に分離されます。</p></section><div class="section-title">プロフィール切替</div><div class="grid">${profiles.map(([id,x])=>`<div class="profile-row"><div class="avatar">${esc(x.name.slice(0,1).toUpperCase())}</div><div class="profile-info"><div class="profile-name">${esc(x.name)}</div><div class="profile-meta">${x.history.length}回答 ${id===state.activeProfileId?'· 利用中':''}</div></div>${id===state.activeProfileId?'<span class="pill good">利用中</span>':`<button class="secondary" data-action="switch-profile" data-id="${id}">切替</button>`}</div>`).join('')}</div>
-  <div class="section-title">新しいユーザー</div><div class="card"><div class="form"><input id="new-profile-name" class="input" maxlength="30" placeholder="表示名"><button class="primary" data-action="add-profile">プロフィールを追加</button></div></div>
+  const storageNotice=storagePersistent?'':`<div class="card warning-card"><b>保存できないブラウザモードです</b><div class="tiny muted" style="margin-top:6px">通常のSafari / Chromeで開くと、学習履歴を端末に保存できます。</div></div>`;
+  const content=`<section class="hero"><div class="eyebrow">LOCAL PROFILES</div><h1>ユーザー</h1><p>通常は設定不要です。アプリは前回使ったユーザーで自動的に再開します。複数人で同じ端末を使う場合だけ切り替えてください。</p></section>${storageNotice}
+  <div class="section-title">現在のユーザー</div><div class="card"><div class="form"><label class="tiny muted" for="rename-profile-name">表示名</label><div class="inline-form"><input id="rename-profile-name" class="input" maxlength="30" value="${esc(p.name)}" aria-label="現在のユーザー名"><button class="secondary compact" data-action="rename-profile">変更</button></div><div class="tiny muted">名前は任意です。変更しなくても全機能を利用できます。</div></div></div>
+  <div class="section-title">プロフィール切替</div><div class="grid">${profiles.map(([id,x])=>`<div class="profile-row"><div class="avatar">${esc(x.name.slice(0,1).toUpperCase())}</div><div class="profile-info"><div class="profile-name">${esc(x.name)}</div><div class="profile-meta">${x.history.length}回答 ${id===state.activeProfileId?'· 利用中':''}</div></div>${id===state.activeProfileId?'<span class="pill good">利用中</span>':`<button class="secondary" data-action="switch-profile" data-id="${id}">切替</button>`}</div>`).join('')}</div>
+  <div class="section-title">この端末で別ユーザーを追加</div><div class="card"><div class="form"><div class="inline-form"><input id="new-profile-name" class="input" maxlength="30" placeholder="表示名（任意）"><button class="primary compact" data-action="add-profile">追加</button></div><div class="tiny muted">未入力なら「ユーザー${profiles.length+1}」として追加します。</div></div></div>
   <div class="section-title">バックアップ</div><div class="card"><div class="button-row"><button class="secondary" data-action="export-data">データを書き出す</button><button class="secondary" data-action="import-data">データを読み込む</button></div><div class="spacer8"></div><div class="tiny muted">機種変更時はJSONを書き出し、新端末で読み込んでください。サーバー同期は行いません。</div></div>
   <div class="section-title">データ管理</div><div class="card"><div class="button-row"><button class="danger" data-action="clear-history">学習履歴を初期化</button>${profiles.length>1?'<button class="danger" data-action="delete-profile">このプロフィールを削除</button>':''}</div></div>`;
   app.innerHTML=shell(content,'profile');
 }
+
 function exportData(){const p=profile();const payload={app:APP_NAME,version:APP_VERSION,exportedAt:nowIso(),profile:p};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`jcsqe-shokyu-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);showToast('学習データを書き出しました。')}
 async function importData(file){try{const text=await file.text();const data=JSON.parse(text);if(!data||!data.profile||!Array.isArray(data.profile.history))throw new Error('形式が正しくありません');const id=uid();const np=normalizeProfile(data.profile);np.name=`${np.name}（復元）`.slice(0,30);np.activeSession=null;state.profiles[id]=np;state.activeProfileId=id;saveState();route='profile';render();showToast('バックアップを新しいプロフィールとして復元しました。')}catch(e){showToast(`読み込みに失敗しました: ${e.message}`)}}
 function handleAction(btn){const a=btn.dataset.action;
-  if(a==='first-start'){createProfile(document.getElementById('first-name')?.value);route='home';render();return}
   if(a==='nav'){route=btn.dataset.route||'home';currentResult=null;render();return}
   if(a==='start-practice'){startPractice(btn.dataset.mode);return}
   if(a==='start-category'){startPractice('category',btn.dataset.category);return}
@@ -166,6 +176,7 @@ function handleAction(btn){const a=btn.dataset.action;
   if(a==='jump-question'){const s=profile().activeSession;if(!s)return;s.index=Math.max(0,Math.min(s.questionIds.length-1,Number(btn.dataset.index)||0));s.updatedAt=Date.now();saveState();render();return}
   if(a==='finish-mock'){finishMock();return}
   if(a==='quit-session'){route='home';render();showToast('進捗を保存しました。');return}
+  if(a==='rename-profile'){const input=document.getElementById('rename-profile-name');if(renameActiveProfile(input?.value)){render();showToast('表示名を変更しました。')}else showToast('表示名を入力してください。');return}
   if(a==='add-profile'){const input=document.getElementById('new-profile-name');createProfile(input?.value);route='profile';render();showToast('新しいプロフィールを作成しました。');return}
   if(a==='switch-profile'){const id=btn.dataset.id;if(state.profiles[id]){state.activeProfileId=id;saveState();route='home';currentResult=null;render();showToast('プロフィールを切り替えました。')}return}
   if(a==='export-data'){exportData();return}
@@ -174,10 +185,11 @@ function handleAction(btn){const a=btn.dataset.action;
   if(a==='delete-profile'){const id=state.activeProfileId;if(Object.keys(state.profiles).length<=1)return;if(confirm('このプロフィールを削除しますか？')){delete state.profiles[id];state.activeProfileId=Object.keys(state.profiles)[0];saveState();route='home';render();showToast('プロフィールを削除しました。')}return}
 }
 app.addEventListener('click',e=>{const btn=e.target.closest('[data-action]');if(!btn||btn.disabled)return;try{handleAction(btn)}catch(err){console.error(err);showToast(`操作に失敗しました: ${err.message}`)}});
-app.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='first-name'){document.querySelector('[data-action="first-start"]')?.click()}if(e.key==='Enter'&&e.target.id==='new-profile-name'){document.querySelector('[data-action="add-profile"]')?.click()}});
+app.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='new-profile-name')document.querySelector('[data-action="add-profile"]')?.click();if(e.target.id==='rename-profile-name')document.querySelector('[data-action="rename-profile"]')?.click();});
 importInput.addEventListener('change',()=>{const f=importInput.files?.[0];if(f)importData(f)});
 window.addEventListener('error',e=>{console.error('window error',e.error||e.message)});
 window.addEventListener('unhandledrejection',e=>{console.error('promise rejection',e.reason)});
-if('serviceWorker'in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW registration failed',e)));
+if('serviceWorker'in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(e=>console.warn('SW registration failed',e)));
+if(window.__JCSQE_ENABLE_TEST_HOOKS__)window.JCSQEAppTest={getState:()=>JSON.parse(JSON.stringify(state)),getRoute:()=>route,profile:()=>JSON.parse(JSON.stringify(profile())),handleAction,render,createProfile,renameActiveProfile,ensureUsableProfile,importData,exportData};
 render();
 })();
