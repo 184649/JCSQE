@@ -36,9 +36,10 @@ function question(concepts,conceptId,round){
 function firstAttempts(course,round){const seen=new Set(),out=[];for(const h of course.history){if(h.round!==round||seen.has(h.conceptId))continue;seen.add(h.conceptId);out.push(h);}return out;}
 function roundProgress(concepts,profile,round){
  const course=normalizeProfile(profile),first=firstAttempts(course,round),answered=new Set(first.map(x=>x.conceptId)),correct=first.filter(x=>x.correct).length,sure=first.filter(x=>x.correct&&x.confidence==='sure').length;
- return{round,total:concepts.length,answered:answered.size,remaining:concepts.length-answered.size,complete:answered.size===concepts.length,correct,accuracy:first.length?Math.round(correct/first.length*100):null,sure,sureAccuracy:first.length?Math.round(sure/first.length*100):null};
+ const checks=(profile.sessions||[]).filter(x=>x.kind==='mock'&&x.total===40&&x.courseCheckpointRound===round),best=checks.length?Math.max(...checks.map(x=>x.correct)):null,checkpointPassed=checks.some(x=>x.correct>=32),coverageComplete=answered.size===concepts.length;
+ return{round,total:concepts.length,answered:answered.size,remaining:concepts.length-answered.size,coverageComplete,checkpointPassed,checkpointBest:best,checkpointAttempts:checks.length,complete:coverageComplete&&checkpointPassed,correct,accuracy:first.length?Math.round(correct/first.length*100):null,sure,sureAccuracy:first.length?Math.round(sure/first.length*100):null};
 }
-function progress(concepts,profile){const rounds=[1,2,3].map(r=>roundProgress(concepts,profile,r));let current=1;if(rounds[0].complete)current=2;if(rounds[1].complete)current=3;if(rounds[2].complete)current=4;return{rounds,current,complete:current===4,totalRequired:concepts.length*3};}
+function progress(concepts,profile){const rounds=[1,2,3].map(r=>roundProgress(concepts,profile,r));let current=1;if(rounds[0].complete)current=2;if(rounds[1].complete)current=3;if(rounds[2].complete)current=4;const waiting=current<=3&&rounds[current-1].coverageComplete&&!rounds[current-1].checkpointPassed;return{rounds,current,waitingCheckpoint:waiting?current:null,complete:current===4,totalRequired:concepts.length*3};}
 function pendingConcepts(concepts,profile,round){
  const course=normalizeProfile(profile),done=new Set(firstAttempts(course,round).map(x=>x.conceptId));
  return concepts.filter(x=>!done.has(x.id));
@@ -70,9 +71,8 @@ function reinforcement(concepts,profile,count=10,time=Date.now()){
  return{id:'reinforce_'+time,round,conceptIds:chosen,index:0,answers:{},confidence:{},committed:{},startedAt:time,updatedAt:time,delayed:false,reinforcement:true};
 }
 function readiness(concepts,profile){
- const course=normalizeProfile(profile),p3=progress(concepts,profile).rounds?.[2];
- const mocks=(profile.sessions||[]).filter(x=>x.appVersion>=7&&x.kind==='mock'&&x.total===40).slice(-3);
- return{round3Complete:!!p3?.complete,round3Accuracy:p3?.accuracy??null,mockCount:mocks.length,mocks:mocks.map(x=>x.correct),ready:!!p3?.complete&&(p3.accuracy??0)>=85&&mocks.length===3&&mocks.every(x=>x.correct>=32)};
+ const pr=progress(concepts,profile),p3=pr.rounds[2],checks=pr.rounds.map(x=>x.checkpointBest);
+ return{round3Complete:!!p3?.complete,round3Accuracy:p3?.accuracy??null,checkpointScores:checks,ready:pr.complete&&(p3.accuracy??0)>=85};
 }
 return{LETTERS,hash,seeded,shuffle,normalizeProfile,question,roundProgress,progress,pendingConcepts,makeSession,currentQuestion,commit,finish,reinforcement,readiness};
 });
