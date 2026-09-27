@@ -5,7 +5,7 @@ const concepts=JSON.parse(JSON.stringify(ctx.window.JCSQE_SYLLABUS_CONCEPTS));
 const profile=()=>({sessions:[],course:{history:[],session:null}}),T=Date.parse('2026-09-27T12:00:00Z');
 
 test('course has 170 unique syllabus checkpoints across five major chapters',()=>{
- assert.equal(concepts.length,170);assert.equal(new Set(concepts.map(x=>x.id)).size,130);
+ assert.equal(concepts.length,170);assert.equal(new Set(concepts.map(x=>x.id)).size,170);
  assert.deepEqual([...new Set(concepts.map(x=>x.chapter))].sort(),['品質の概念','品質マネジメント','品質技術','専門品質','新領域'].sort());
  assert.ok(concepts.every(x=>/^L[123]$/.test(x.level)&&x.term&&x.definition&&x.syllabus&&x.source.startsWith('https://')));
 });
@@ -33,7 +33,7 @@ test('round 3 hides feedback flag at session level',()=>{
  const s=Course.makeSession(concepts,p,5,T+3*86400000);assert.equal(s.round,3);assert.equal(s.delayed,true);
 });
 test('site readiness requires all three rounds, round3 >=85%, and three recent 32/40 mocks',()=>{
- const p=profile();for(const r of [1,2,3])for(const [i,c] of concepts.entries())p.course.history.push({conceptId:c.id,round:r,correct:r<3||i<115,confidence:'sure',timestamp:new Date(T+r*86400000+i).toISOString()});
+ const p=profile();for(const r of [1,2,3])for(const [i,c] of concepts.entries())p.course.history.push({conceptId:c.id,round:r,correct:r<3||i<150,confidence:'sure',timestamp:new Date(T+r*86400000+i).toISOString()});
  assert.equal(Course.readiness(concepts,p).ready,false);
  p.sessions=[1,2,3].map((round,i)=>({appVersion:8,kind:'mock',total:40,correct:[32,35,36][i],courseCheckpointRound:round,finishedAt:new Date(T+i*86400000).toISOString()}));
  const ready=Course.readiness(concepts,p);assert.ok(ready.round3Accuracy>=85);assert.equal(ready.ready,true);
