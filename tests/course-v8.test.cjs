@@ -4,8 +4,8 @@ const ctx={window:{}};vm.createContext(ctx);vm.runInContext(fs.readFileSync(path
 const concepts=JSON.parse(JSON.stringify(ctx.window.JCSQE_SYLLABUS_CONCEPTS));
 const profile=()=>({sessions:[],course:{history:[],session:null}}),T=Date.parse('2026-09-27T12:00:00Z');
 
-test('course has 130 unique syllabus checkpoints across five major chapters',()=>{
- assert.equal(concepts.length,130);assert.equal(new Set(concepts.map(x=>x.id)).size,130);
+test('course has 170 unique syllabus checkpoints across five major chapters',()=>{
+ assert.equal(concepts.length,170);assert.equal(new Set(concepts.map(x=>x.id)).size,130);
  assert.deepEqual([...new Set(concepts.map(x=>x.chapter))].sort(),['品質の概念','品質マネジメント','品質技術','専門品質','新領域'].sort());
  assert.ok(concepts.every(x=>/^L[123]$/.test(x.level)&&x.term&&x.definition&&x.syllabus&&x.source.startsWith('https://')));
 });
