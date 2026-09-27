@@ -52,12 +52,12 @@ function makeSession(concepts,profile,count=5,time=Date.now()){
 function currentQuestion(concepts,session){return question(concepts,session.conceptIds[session.index],session.round);}
 function commit(concepts,profile,session,selected,confidence,time=Date.now()){
  const course=normalizeProfile(profile),q=currentQuestion(concepts,session),cid=q.conceptId;if(session.committed[cid])return null;
- const s=Number.isInteger(selected)?selected:null,correct=s===q.correct,rec={id:'cr_'+time+'_'+cid,conceptId:cid,round:session.round,selected:s,correct,confidence:confidence||'unknown',timestamp:new Date(time).toISOString(),questionId:q.id};
+ const s=Number.isInteger(selected)?selected:null,correct=s===q.correct,rec={id:'cr_'+time+'_'+cid,sessionId:session.id,conceptId:cid,round:session.round,selected:s,correct,confidence:confidence||'unknown',timestamp:new Date(time).toISOString(),questionId:q.id};
  course.history.push(rec);session.answers[cid]=s;session.confidence[cid]=confidence||'unknown';session.committed[cid]=true;session.updatedAt=time;return{record:rec,question:q};
 }
-function finish(profile,session,time=Date.now()){
- const course=normalizeProfile(profile);for(const cid of session.conceptIds){if(!session.committed[cid]){session.index=session.conceptIds.indexOf(cid);session.answers[cid]=null;session.confidence[cid]='unknown';}}
- const rows=course.history.filter(h=>h.id&&session.conceptIds.includes(h.conceptId)&&h.round===session.round&&Date.parse(h.timestamp)>=session.startedAt-1000);
+function finish(concepts,profile,session,time=Date.now()){
+ const course=normalizeProfile(profile);for(const cid of session.conceptIds){if(!session.committed[cid]){session.index=session.conceptIds.indexOf(cid);commit(concepts,profile,session,null,'unknown',time);}}
+ const rows=course.history.filter(h=>h.sessionId===session.id);
  const latest=new Map();for(const h of rows)latest.set(h.conceptId,h);const details=session.conceptIds.map(cid=>latest.get(cid)).filter(Boolean),correct=details.filter(x=>x.correct).length;
  const result={id:session.id,round:session.round,total:session.conceptIds.length,correct,accuracy:session.conceptIds.length?Math.round(correct/session.conceptIds.length*100):0,elapsedSec:Math.max(0,Math.floor((time-session.startedAt)/1000)),details,finishedAt:new Date(time).toISOString()};
  course.lastResult=result;course.session=null;return result;
@@ -69,8 +69,8 @@ function reinforcement(concepts,profile,count=10,time=Date.now()){
  const chosen=shuffle(ids,rng).slice(0,count);if(!chosen.length)return null;
  return{id:'reinforce_'+time,round,conceptIds:chosen,index:0,answers:{},confidence:{},committed:{},startedAt:time,updatedAt:time,delayed:false,reinforcement:true};
 }
-function readiness(profile){
- const course=normalizeProfile(profile),p3=progress(root.JCSQE_SYLLABUS_CONCEPTS||[],profile).rounds?.[2];
+function readiness(concepts,profile){
+ const course=normalizeProfile(profile),p3=progress(concepts,profile).rounds?.[2];
  const mocks=(profile.sessions||[]).filter(x=>x.appVersion>=7&&x.kind==='mock'&&x.total===40).slice(-3);
  return{round3Complete:!!p3?.complete,round3Accuracy:p3?.accuracy??null,mockCount:mocks.length,mocks:mocks.map(x=>x.correct),ready:!!p3?.complete&&(p3.accuracy??0)>=85&&mocks.length===3&&mocks.every(x=>x.correct>=32)};
 }
