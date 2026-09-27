@@ -27,6 +27,13 @@ jobs:
           git remote add origin "https://github.com/${REPO}.git"
           git fetch --depth=1 origin "$COMMIT_SHA"
           git checkout --detach FETCH_HEAD
+      - name: Inspect live bank compatibility
+        run: |
+          node <<'JS'
+          global.window={};require('./questions.js');const C=require('./study-core.js');const catalog=C.catalog(window.JCSQE_QUESTIONS);
+          console.log('groups',catalog.groups.length);
+          for(const g of catalog.groups.filter(g=>g.ids.length===1))console.log(JSON.stringify(g.question));
+          JS
       - name: Validate questions and study logic
         run: node --test tests/study-v7.test.cjs
       - name: Parse browser scripts
