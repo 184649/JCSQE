@@ -3,12 +3,14 @@
 'use strict';
 const VERSION=7,DAY=86400000,KEY='jcsqe-shokyu-state-v3';
 const PREFIX=/^(ある業務システム開発で、|レビュー会議において、|運用中のWebサービスについて、|品質保証担当者が判断する場合、|新規プロジェクトで、|保守フェーズにおいて、|テスト計画を作成する際、)/;
-const norm=x=>String(x||'').normalize('NFKC').replace(PREFIX,'').replace(/\s+/g,'').toLowerCase();
+const stripRule=x=>String(x||'').replace(/\s+-{3,}\s*$/,'');
+const norm=x=>stripRule(x).normalize('NFKC').replace(PREFIX,'').replace(/\s+/g,'').toLowerCase();
 const dayKey=(time=Date.now())=>new Date(time+9*3600000).toISOString().slice(0,10);
 const daysLeft=(target='2026-11-14',time=Date.now())=>Math.max(0,Math.round((Date.parse(target+'T00:00:00+09:00')-Date.parse(dayKey(time)+'T00:00:00+09:00'))/DAY));
 function fingerprint(q){return JSON.stringify([norm(q.text),q.options.map(norm).sort(),norm(q.options[q.correct])]);}
 function validateQuestions(qs){const ids=new Set();const errors=[];for(const q of qs){if(!q||typeof q.id!=='string'||ids.has(q.id)||typeof q.text!=='string'||!Array.isArray(q.options)||q.options.length!==4||q.options.some(x=>typeof x!=='string'||!x.trim())||!Number.isInteger(q.correct)||q.correct<0||q.correct>3||!q.explanation)errors.push(q?.id||'missing ID');ids.add(q?.id);}return errors;}
-function catalog(qs){const errors=validateQuestions(qs);if(errors.length)throw Error('問題データが不正です: '+errors.slice(0,4).join(', '));const byId=new Map(),groups=[],byPrint=new Map();for(const q of qs){const key=fingerprint(q);let g=byPrint.get(key);if(!g){g={key:q.id,question:q,ids:[],category:q.category,added:!!q.supplement};byPrint.set(key,g);groups.push(g);}g.ids.push(q.id);byId.set(q.id,g);}return{groups,byId,questions:new Map(qs.map(q=>[q.id,q])),rawCount:qs.length};}
+function displayQuestion(q){return /^E\d{2}Q40$/.test(q.id)?{...q,options:q.options.map(stripRule),explanation:stripRule(q.explanation)}:q;}
+function catalog(qs){const errors=validateQuestions(qs);if(errors.length)throw Error('問題データが不正です: '+errors.slice(0,4).join(', '));const byId=new Map(),groups=[],byPrint=new Map();for(const source of qs){const q=displayQuestion(source);const key=fingerprint(q);let g=byPrint.get(key);if(!g){g={key:q.id,question:q,ids:[],category:q.category,added:!!q.supplement};byPrint.set(key,g);groups.push(g);}g.ids.push(q.id);byId.set(q.id,g);}return{groups,byId,questions:new Map(qs.map(q=>[q.id,displayQuestion(q)])),rawCount:qs.length};}
 function shuffle(a,rng=Math.random){const b=a.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
 function cleanObject(v){if(Array.isArray(v))return v.map(cleanObject);if(v&&typeof v==='object'){const out={};for(const [k,x] of Object.entries(v))if(!['__proto__','constructor','prototype'].includes(k))out[k]=cleanObject(x);return out;}return v;}
 function normalizeProfile(p={}){return{...p,name:typeof p.name==='string'?p.name.slice(0,50):'ユーザー1',history:Array.isArray(p.history)?p.history:[],sessions:Array.isArray(p.sessions)?p.sessions:[],bookmarks:Array.isArray(p.bookmarks)?p.bookmarks:[],exposures:p.exposures&&typeof p.exposures==='object'?p.exposures:{},activeSession:p.activeSession||null};}
