@@ -12,7 +12,10 @@ function pickDistractors(concepts,target,n=3,salt=''){
  const sameFamily=concepts.filter(x=>x.id!==target.id&&x.family===target.family);
  const sameChapter=concepts.filter(x=>x.id!==target.id&&x.chapter===target.chapter&&!sameFamily.some(y=>y.id===x.id));
  const other=concepts.filter(x=>x.id!==target.id&&!sameFamily.some(y=>y.id===x.id)&&!sameChapter.some(y=>y.id===x.id));
- return shuffle([...sameFamily,...sameChapter,...other],seeded(hash(target.id+'|'+salt))).slice(0,n);
+ const ordered=shuffle([...sameFamily,...sameChapter,...other],seeded(hash(target.id+'|'+salt))),out=[],terms=new Set([clean(target.term)]),defs=new Set([clean(target.definition)]);
+ for(const x of ordered){const term=clean(x.term),def=clean(x.definition);if(terms.has(term)||defs.has(def))continue;terms.add(term);defs.add(def);out.push(x);if(out.length===n)break;}
+ if(out.length<n)throw Error('十分に異なる誤答候補を作れません: '+target.id);
+ return out;
 }
 function variant(concepts,conceptId,type){
  const t=concepts.find(x=>x.id===conceptId);if(!t)throw Error('チェックポイントが見つかりません。');
