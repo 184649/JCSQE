@@ -7,6 +7,7 @@ on:
       - 'supplement.js'
       - 'syllabus-course.js'
       - 'course-engine.js'
+      - 'dojo-engine.js'
       - 'questions.js'
       - 'index.html'
       - 'sw.js'
@@ -36,6 +37,7 @@ jobs:
           node --check study-core.js
           node --check study-app.js
           node --check course-engine.js
+          node --check dojo-engine.js
           node --check syllabus-course.js
           node --check supplement.js
           node --check sw.js
