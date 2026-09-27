@@ -18,9 +18,9 @@ test('three rounds use different prompts for the same checkpoint',()=>{
 test('round 2 and 3 stay locked until every checkpoint in prior round has first attempt',()=>{
  const p=profile();let pr=Course.progress(concepts,p);assert.equal(pr.current,1);
  for(const c of concepts)p.course.history.push({conceptId:c.id,round:1,correct:true,confidence:'sure',timestamp:new Date(T).toISOString()});
- pr=Course.progress(concepts,p);assert.equal(pr.current,2);assert.equal(pr.rounds[0].complete,true);
+ pr=Course.progress(concepts,p);assert.equal(pr.current,1);assert.equal(pr.waitingCheckpoint,1);assert.equal(pr.rounds[0].coverageComplete,true);assert.equal(pr.rounds[0].complete,false);p.sessions.push({kind:'mock',total:40,correct:32,courseCheckpointRound:1});pr=Course.progress(concepts,p);assert.equal(pr.current,2);assert.equal(pr.rounds[0].complete,true);
  for(const c of concepts)p.course.history.push({conceptId:c.id,round:2,correct:true,confidence:'sure',timestamp:new Date(T+86400000).toISOString()});
- pr=Course.progress(concepts,p);assert.equal(pr.current,3);
+ pr=Course.progress(concepts,p);assert.equal(pr.waitingCheckpoint,2);p.sessions.push({kind:'mock',total:40,correct:35,courseCheckpointRound:2});pr=Course.progress(concepts,p);assert.equal(pr.current,3);
 });
 test('five-question commute session records sure, guess and unknown without double commit',()=>{
  const p=profile(),s=Course.makeSession(concepts,p,5,T);assert.equal(s.conceptIds.length,5);assert.equal(s.round,1);
@@ -29,12 +29,12 @@ test('five-question commute session records sure, guess and unknown without doub
  const r=Course.finish(concepts,p,s,T+5000);assert.equal(r.total,5);assert.equal(r.details.length,5);assert.equal(p.course.history.length,5);assert.equal(r.details.filter(x=>x.confidence==='unknown').length,3);
 });
 test('round 3 hides feedback flag at session level',()=>{
- const p=profile();for(const r of [1,2])for(const c of concepts)p.course.history.push({conceptId:c.id,round:r,correct:true,confidence:'sure',timestamp:new Date(T+r*86400000).toISOString()});
+ const p=profile();for(const r of [1,2]){for(const c of concepts)p.course.history.push({conceptId:c.id,round:r,correct:true,confidence:'sure',timestamp:new Date(T+r*86400000).toISOString()});p.sessions.push({kind:'mock',total:40,correct:34,courseCheckpointRound:r});}
  const s=Course.makeSession(concepts,p,5,T+3*86400000);assert.equal(s.round,3);assert.equal(s.delayed,true);
 });
 test('site readiness requires all three rounds, round3 >=85%, and three recent 32/40 mocks',()=>{
  const p=profile();for(const r of [1,2,3])for(const [i,c] of concepts.entries())p.course.history.push({conceptId:c.id,round:r,correct:r<3||i<115,confidence:'sure',timestamp:new Date(T+r*86400000+i).toISOString()});
  assert.equal(Course.readiness(concepts,p).ready,false);
- p.sessions=[32,35,36].map((correct,i)=>({appVersion:8,kind:'mock',total:40,correct,finishedAt:new Date(T+i*86400000).toISOString()}));
+ p.sessions=[1,2,3].map((round,i)=>({appVersion:8,kind:'mock',total:40,correct:[32,35,36][i],courseCheckpointRound:round,finishedAt:new Date(T+i*86400000).toISOString()}));
  const ready=Course.readiness(concepts,p);assert.ok(ready.round3Accuracy>=85);assert.equal(ready.ready,true);
 });
