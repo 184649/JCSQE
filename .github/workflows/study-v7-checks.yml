@@ -5,6 +5,8 @@ on:
       - 'study-*'
       - 'study.css'
       - 'supplement.js'
+      - 'syllabus-course.js'
+      - 'course-engine.js'
       - 'questions.js'
       - 'index.html'
       - 'sw.js'
@@ -33,5 +35,7 @@ jobs:
         run: |
           node --check study-core.js
           node --check study-app.js
+          node --check course-engine.js
+          node --check syllabus-course.js
           node --check supplement.js
           node --check sw.js
