@@ -164,7 +164,16 @@ rootEl.addEventListener('toggle', e => {
   if (!Object.hasOwn(a.exposures,id)) { a.exposures[id]=Date.now(); save(); }
 }, true);
 $('#close-copy').addEventListener('click',()=>$('#applied-copy').close());
-window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue!==lastRaw){blocked=true;storageError='別のタブで保存内容が更新されました。現在の内容をJSON保存し、再読み込みしてから続けてください。';render();}});
+// Events may be queued while navigating or restoring a cached document.
+// Compare the live value, not an obsolete event payload, while keeping real conflicts blocked.
+window.addEventListener('storage', e => {
+  if (e.key !== KEY && e.key !== null) return;
+  try { if (localStorage.getItem(KEY) === lastRaw) return; }
+  catch { blocked=true;storageError='保存領域を確認できません。現在のJSONを保存してから再読み込みしてください。';render();return; }
+  blocked=true;
+  storageError='別のタブで保存内容が更新されました。現在の内容をJSON保存し、再読み込みしてから続けてください。';
+  render();
+});
 window.addEventListener('pagehide',()=>{try{E.pause(p());save();}catch{}});
 try {load();save();render();}
 catch(e) {
