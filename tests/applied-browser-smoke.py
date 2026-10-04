@@ -29,7 +29,7 @@ try:
         browser = pw.chromium.launch(**opts)
         ctx = browser.new_context(viewport={'width': 390, 'height': 844}, reduced_motion='reduce')
         page = ctx.new_page()
-        page.on('pageerror', lambda error: errors.append(str(error)))
+        page.on('pageerror', lambda error: (errors.append(str(error)), print('BROWSER_ERROR', str(error), flush=True)))
         page.on('dialog', lambda dialog: dialog.accept())
         page.goto(base+'index.html?legacy=1')
         page.wait_for_function("window.JCSQEStudy && document.querySelector('main#main')")
@@ -72,7 +72,10 @@ try:
         a=state['profiles']['fixture']['appliedStudy']
         assert sum(h['observed'] for h in a['history'])==1
         assert len(a['exposures'])==1
+        page.evaluate('''()=>{window.__toggleEvents=[];document.getElementById('applied-app').addEventListener('toggle',e=>__toggleEvents.push([e.target.tagName,e.target.dataset.reviewId,e.target.open]),true);}''')
         page.locator('.result-item>summary').nth(1).click()
+        page.wait_for_timeout(200)
+        print('EXPOSURE_DEBUG',page.evaluate('''key=>({events:window.__toggleEvents,exposures:JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.exposures,details:[...document.querySelectorAll('.result-item')].map(d=>[d.dataset.reviewId,d.open]),notices:[...document.querySelectorAll('.notice.error')].map(x=>x.textContent)})''',KEY),flush=True)
         page.wait_for_function('key=>Object.keys(JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.exposures).length===2',arg=KEY)
         passed('unshown tasks remain unseen until a result explanation is actually opened')
         state=page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
