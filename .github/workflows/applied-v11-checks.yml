@@ -1,0 +1,44 @@
+name: Applied v11 checks
+on:
+  push:
+    paths:
+      - 'applied-*'
+      - 'applied.css'
+      - 'practice.html'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/applied*'
+      - '.github/workflows/applied-v11-checks.yml'
+  pull_request:
+    paths:
+      - 'applied-*'
+      - 'applied.css'
+      - 'practice.html'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/applied*'
+      - '.github/workflows/applied-v11-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test case bank and selection logic
+        run: node --test tests/*.test.cjs
+      - name: Check browser JavaScript syntax
+        run: |
+          node --check applied-bank.js
+          node --check applied-engine.js
+          node --check applied-ui.js
+          node --check applied-entry.js
+          node --check sw.js
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Test real storage, legacy compatibility and offline routes
+        run: python tests/applied-browser-smoke.py
