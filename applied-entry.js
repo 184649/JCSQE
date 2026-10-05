@@ -1,4 +1,4 @@
-/* Additive v11.1 launcher. ?legacy=1 leaves all previous screens untouched. */
+/* Additive v12.0 launcher. ?legacy=1 leaves all previous screens untouched. */
 (() => {
 'use strict';
 if (new URLSearchParams(location.search).get('legacy') === '1') return;
@@ -23,10 +23,10 @@ function planHref(date, round) {
 }
 function enhanceHome() {
   const main = app.querySelector('main#main');
-  if (!main || main.dataset.appliedLauncher === '11') return;
+  if (!main || main.dataset.appliedLauncher === '12') return;
   const eyebrow = main.querySelector('.hero .eyebrow');
   if (!eyebrow || !eyebrow.textContent.includes('SMALL STEPS, CLEAR PROGRESS')) return;
-  main.dataset.appliedLauncher = '11';
+  main.dataset.appliedLauncher = '12';
   const previous = document.createElement('details');
   previous.className = 'panel';
   const summary = document.createElement('summary');
@@ -38,7 +38,7 @@ function enhanceHome() {
   const launch = document.createElement('section');
   launch.className = 'panel';
   launch.setAttribute('aria-label', '新しい事例演習');
-  launch.innerHTML = '<span class="tag">v11.1 · 新しい演習</span><h1 style="margin-top:14px">言葉の暗記から、<br>条件を読み解く練習へ。</h1><p>64問・32テーマの独自問題。事例判断、比較、計算、テストの組み立てを混ぜて解きます。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">事例で考える演習を開く →</a></p><p class="muted">ワンタップ回答・要点＋詳細解説。旧履歴は残し、新演習の成績とは分けて管理します。公式問題や全範囲の網羅を保証するものではありません。</p>';
+  launch.innerHTML = '<span class="tag">v12.0 · 理解重視</span><h1 style="margin-top:14px">消去法から、<br>根拠で選ぶ練習へ。</h1><p>64問・32テーマ。似た概念・近い選択肢を比較し、問題文の条件を理解しないと選びにくい構成へ更新しました。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">事例で考える演習を開く →</a></p><p class="muted">ワンタップ回答・要点＋段階的な詳細解説。v11までの履歴は残し、v12の初回成績とは分けて管理します。公式問題や全範囲の網羅を保証するものではありません。</p>';
   main.append(launch, previous);
 }
 function setTextIfChanged(el,text){if(el.textContent!==text)el.textContent=text;}
