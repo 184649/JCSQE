@@ -98,12 +98,18 @@ test('copying a selected past result is read-only',()=>{
 });
 test('new launcher retains legacy script URLs and scoped offline pages',()=>{
  const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- for(const name of ['questions.js?v=4','supplement.js?v=7','syllabus-course.js?v=9','course-engine.js?v=9','dojo-engine.js?v=9','study-core.js?v=9','study-app.js?v=10.1','applied-entry.js?v=12.0'])assert(html.includes(name));
+ for(const name of ['questions.js?v=4','supplement.js?v=7','syllabus-course.js?v=9','course-engine.js?v=9','dojo-engine.js?v=9','study-core.js?v=9','study-app.js?v=10.1','applied-entry.js?v=12.1'])assert(html.includes(name));
  const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');assert(sw.includes("url.pathname.endsWith('/practice.html')?'./practice.html':'./index.html'"));assert(sw.includes("key.startsWith('jcsqe-shokyu-')"));
   assert(html.includes('study.css?v=10.2'));
-  const practice=fs.readFileSync(path.join(root,'practice.html'),'utf8');assert(practice.includes('applied-hard-overrides.js?v=12.0'));assert(practice.includes('applied-bank.js?v=12.0'));assert(practice.includes('applied-ui.js?v=12.0'));
+  const practice=fs.readFileSync(path.join(root,'practice.html'),'utf8');assert(practice.includes('applied-hard-overrides.js?v=12.0'));assert(practice.includes('applied-bank.js?v=12.0'));assert(practice.includes('applied-explanation-guide.js?v=12.1'));assert(practice.includes('applied-ui.js?v=12.1'));
   const entry=fs.readFileSync(path.join(root,'applied-entry.js'),'utf8');assert(entry.includes('data-applied-plan-date'));assert(entry.includes('未実施・開始'));
-  const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');assert(ui.includes('data-plan-date'));assert(ui.includes('plannedDate'));assert(ui.includes('似た概念との見分け方'));
+  const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');assert(ui.includes('data-plan-date'));assert(ui.includes('plannedDate'));assert(ui.includes('あなたの選択肢が誤りになる決定的理由'));assert(ui.includes('正解との直接比較'));assert(ui.includes('4択を同じ基準で検証'));
+});
+
+
+test('explanation guide covers all v12 topics with a rule and decision steps',()=>{
+ const G=require('../applied-explanation-guide.js');
+ for(const topic of B.topics){assert(G[topic],topic);assert(G[topic].rule.length>=30,topic);assert(G[topic].trap.length>=20,topic);assert(Array.isArray(G[topic].steps));assert(G[topic].steps.length>=3,topic);}
 });
 
 test('unshown questions stay new and do not pollute repeat, weak, or delayed statistics',()=>{

@@ -1,4 +1,4 @@
-/* Additive v12.0 launcher. ?legacy=1 leaves all previous screens untouched. */
+/* Additive v12.1 launcher. ?legacy=1 leaves all previous screens untouched. */
 (() => {
 'use strict';
 if (new URLSearchParams(location.search).get('legacy') === '1') return;
@@ -38,7 +38,7 @@ function enhanceHome() {
   const launch = document.createElement('section');
   launch.className = 'panel';
   launch.setAttribute('aria-label', '新しい事例演習');
-  launch.innerHTML = '<span class="tag">v12.0 · 理解重視</span><h1 style="margin-top:14px">消去法から、<br>根拠で選ぶ練習へ。</h1><p>64問・32テーマ。似た概念・近い選択肢を比較し、問題文の条件を理解しないと選びにくい構成へ更新しました。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">事例で考える演習を開く →</a></p><p class="muted">ワンタップ回答・要点＋段階的な詳細解説。v11までの履歴は残し、v12の初回成績とは分けて管理します。公式問題や全範囲の網羅を保証するものではありません。</p>';
+  launch.innerHTML = '<span class="tag">v12.1 · 理解重視＋理由が分かる解説</span><h1 style="margin-top:14px">消去法から、<br>根拠で選ぶ練習へ。</h1><p>64問・32テーマ。似た概念・近い選択肢を比較し、問題文の条件を理解しないと選びにくい構成へ更新しました。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">事例で考える演習を開く →</a></p><p class="muted">ワンタップ回答。詳細解説では「判断基準→問題への適用→誤答の決定的な誤り→正解との比較」まで確認できます。v11までの履歴は残します。公式問題や全範囲の網羅を保証するものではありません。</p>';
   main.append(launch, previous);
 }
 function setTextIfChanged(el,text){if(el.textContent!==text)el.textContent=text;}

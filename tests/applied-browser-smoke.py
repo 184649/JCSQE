@@ -51,16 +51,21 @@ try:
         passed('HTTP entry loads complete application with actual localStorage')
         page.locator('[data-act="start"][data-count="5"][data-mode="smart"]').first.click()
         assert page.locator('.feedback').count()==0
-        page.locator('.guess').first.click()
+        wrong=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];const q=s.snapshots[id];return [0,1,2,3].find(x=>x!==q.correct)}''',KEY)
+        page.locator(f'[data-act="answer"][data-choice="{wrong}"][data-confidence="guess"]').click()
         page.locator('.feedback').wait_for()
         assert page.locator('.deep[open]').count()==0
         page.locator('.deep>summary').click()
         assert page.locator('.reason').count()==4
-        assert page.get_by_role('heading',name='3. 似た概念との見分け方').count()==1
-        assert page.get_by_role('heading',name='4. 各選択肢を1つずつ検討').count()==1
+        assert page.get_by_role('heading',name='あなたの選択肢が誤りになる決定的理由').count()==1
+        assert page.get_by_text('正解との直接比較：',exact=False).count()>=1
+        assert page.get_by_role('heading',name='1. まず使う判定基準').count()==1
+        assert page.get_by_role('heading',name='3. 似た概念との境界').count()==1
+        assert page.get_by_role('heading',name='4. 4択を同じ基準で検証').count()==1
+        assert page.locator('.decision-steps li').count()>=3
         qid=page.locator('.quiz-top .muted').inner_text()
         assert 'A12-' in qid
-        passed('v12 one-tap uncertainty, concise feedback and structured deep explanations')
+        passed('v12.1 explains the selected wrong answer with a decision rule and direct comparison')
         saved = page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
         session = saved['profiles']['fixture']['appliedStudy']['active']
         page.locator('[data-act="pause"]').click()
@@ -130,7 +135,7 @@ try:
         page.get_by_role('heading',name='いま解く').wait_for()
         passed('existing homepage launches new practice while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v12-20261005');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v12-1-20261006');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='いま解く').wait_for()

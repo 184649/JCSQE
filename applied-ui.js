@@ -1,7 +1,7 @@
 /* Static UI. Shared profile storage is preserved; only appliedStudy is added. */
 (() => {
 'use strict';
-const E = window.JCSQEApplied, B = E.bank(window.JCSQEAppliedBank);
+const E = window.JCSQEApplied, B = E.bank(window.JCSQEAppliedBank), G = window.JCSQEExplanationGuide || {};
 const DEMO = document.body.dataset.demo === 'true';
 const KEY = DEMO ? 'jcsqe-v11-preview-state' : 'jcsqe-shokyu-state-v3';
 const $ = s => document.querySelector(s), rootEl = $('#applied-app'), letters = 'ABCD';
@@ -43,7 +43,7 @@ function save() {
     const next=JSON.stringify(state); localStorage.setItem(KEY,next); lastRaw=next; return true;
   } catch { blocked=true; storageError='端末への保存に失敗しました。履歴はこの画面にあります。JSONを書き出して保管してください。'; return false; }
 }
-function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v12.0 · 理解重視の事例演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
+function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v12.1 · 理解重視＋理由が分かる解説 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
 function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('演習を選ぶ','home')}${btn('新演習の記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
 function metric(n,label) {return `<div class="metric"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function ratio(x) {return x.total?`${x.correct}/${x.total}`:'—';}
@@ -79,15 +79,27 @@ function feedback(q, selected, order, confidence) {
   const letter=letters[order.indexOf(q.correct)];
   const selectedLabel=Number.isInteger(selected)?`${letters[order.indexOf(selected)]}. ${q.options[selected]}`:'分からない／未回答';
   const status=selected===q.correct?(confidence==='guess'?'正解・迷いあり':'正解'):'ここを確認';
-  const calc=q.calculation?`<div class="explain-step"><h3>計算の確認</h3><p><code>${esc(q.calculation.expression)}</code> ＝ <b>${esc(q.calculation.value)}${esc(q.calculation.unit||'')}</b></p><p class="muted">式だけでなく、分母・単位・何を数えているかまで確認してください。</p></div>`:'';
+  const guide=G[q.topicKey]||{};
+  const selectedWrong=Number.isInteger(selected)&&selected!==q.correct;
+  const calc=q.calculation?`<div class="explain-step calculation"><h3>計算で確かめる</h3><p><code>${esc(q.calculation.expression)}</code> ＝ <b>${esc(q.calculation.value)}${esc(q.calculation.unit||'')}</b></p><p>この値だけ暗記せず、どの数を分子・分母に置いたか、何回で平均したか、単位がそろっているかを確認します。</p></div>`:'';
+  const selectedAnalysis=selectedWrong?`<div class="explain-step selected-choice-analysis"><h3>あなたの選択肢が誤りになる決定的理由</h3>
+    <p class="choice-quote"><b>${esc(q.options[selected])}</b></p>
+    ${guide.trap?`<p><b>なぜ迷いやすいか：</b>${esc(guide.trap)}</p>`:''}
+    <p><b>この問題では成立しない理由：</b>${esc(q.reasons[selected])}</p>
+    <p><b>正解との直接比較：</b>正解は「${esc(q.options[q.correct])}」。${esc(q.reasons[q.correct])}</p>
+    ${guide.rule?`<p><b>境界線：</b>${esc(guide.rule)}</p>`:''}
+    </div>`:
+    confidence==='unknown'||!Number.isInteger(selected)?`<div class="explain-step selected-choice-analysis"><h3>迷ったときの判断基準</h3><p>${esc(guide.rule||q.distinction||q.brief)}</p></div>`:'';
+  const steps=Array.isArray(guide.steps)&&guide.steps.length?`<ol class="decision-steps">${guide.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:'';
   return `<section class="panel feedback ${selected===q.correct?'':'incorrect'}" tabindex="-1" aria-live="polite"><h2>${status}</h2><p class="result-answer">正解：<b>${letter}. ${esc(q.options[q.correct])}</b><br>あなたの回答：${esc(selectedLabel)}</p><div class="brief"><b>まず覚えるポイント</b><p>${esc(q.brief)}</p></div>
   <details class="deep"><summary>${selected===q.correct&&confidence==='sure'?'詳細な解説を見る':'詳細な解説を見る（推奨）'}</summary><div class="body">
-  <div class="explain-step"><h3>1. 問題文のどこを見るか</h3><p>${esc(q.brief)}</p></div>
-  <div class="explain-step"><h3>2. 正解までの考え方</h3><p>${esc(q.detail)}</p></div>
+  ${selectedAnalysis}
+  <div class="explain-step judgement-rule"><h3>1. まず使う判定基準</h3><p>${esc(guide.rule||q.distinction||q.brief)}</p>${steps}</div>
+  <div class="explain-step"><h3>2. この問題文へ当てはめる</h3><p>${esc(q.detail)}</p></div>
   ${calc}
-  ${q.distinction?`<div class="explain-step distinction"><h3>3. 似た概念との見分け方</h3><p>${esc(q.distinction)}</p></div>`:''}
-  <div class="explain-step"><h3>4. 各選択肢を1つずつ検討</h3>${order.map((n,i)=>`<div class="reason ${n===q.correct?'reason-correct':''}"><b>${letters[i]}. ${esc(q.options[n])}</b><p>${esc(q.reasons[n])}</p></div>`).join('')}</div>
-  <div class="explain-step exam-check"><h3>5. 次回、自力で言えるか</h3><p>選択肢を隠した状態で「この問題の決め手」と「似た概念との違い」を1〜2文で説明できれば、暗記ではなく理解に近づいています。</p></div>
+  ${q.distinction?`<div class="explain-step distinction"><h3>3. 似た概念との境界</h3><p>${esc(q.distinction)}</p></div>`:''}
+  <div class="explain-step"><h3>4. 4択を同じ基準で検証</h3>${order.map((n,i)=>`<div class="reason ${n===q.correct?'reason-correct':'reason-wrong'} ${n===selected?'reason-selected':''}"><div class="reason-head"><b>${letters[i]}. ${esc(q.options[n])}</b><span class="verdict">${n===q.correct?'○ 正解':'× 誤り'}</span></div><p><b>${n===q.correct?'成立する理由':'成立しない理由'}：</b>${esc(q.reasons[n])}</p>${n!==q.correct&&guide.rule?`<p class="muted"><b>正しく選ぶには：</b>この選択肢の文言ではなく、問題文が「${esc(guide.rule)}」のどちら側かを確認します。</p>`:''}</div>`).join('')}</div>
+  <div class="explain-step exam-check"><h3>5. 納得できたかの確認</h3><p>正解記号を覚えるのではなく、<b>「なぜ自分の選択肢ではなく正解なのか」</b>を問題文の条件を使って説明できるか確認してください。説明できなければ、この問題は正解しても定着扱いにしません。</p></div>
   <p class="muted">${esc(q.topic)} / 公式シラバス項目 ${esc(q.syllabus)} / 項目の知識レベル ${esc(q.level)}。独自問題であり、公式問題と同一難易度を保証するものではありません。</p><p class="reference"><a href="${esc(q.source)}" target="_blank" rel="noopener noreferrer">公式シラバス（範囲の参照）</a></p>${(q.references||[]).filter(r=>String(r.url).startsWith('https://')).map(r=>`<p class="reference"><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)}</a></p>`).join('')}</div></details></section>`;
 }
 function quiz() {
