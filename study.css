@@ -33,3 +33,12 @@
 .deep-details[open]>summary{border-bottom:1px solid var(--line)}
 .deep-details-body{padding:14px 15px}
 .deep-details-body h3{font-size:14px;margin:0 0 10px;color:var(--brand)}
+
+/* v10.2: actionable study-plan catch-up cards */
+.plan-row.plan-clickable{cursor:pointer;transition:border-color .15s,transform .15s,background .15s}
+.plan-row.plan-clickable:hover{border-color:var(--brand);transform:translateY(-1px)}
+.plan-row.plan-clickable:active{transform:translateY(0)}
+.plan-row.plan-clickable:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.plan-row.plan-clickable .tag{color:var(--brand);border-color:var(--brand)}
+.plan-row.plan-completed{opacity:.82}
+@media(max-width:430px){.plan-row.plan-clickable{min-height:72px}.plan-row.plan-clickable .tag{max-width:46%;text-align:center}}
