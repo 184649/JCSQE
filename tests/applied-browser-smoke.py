@@ -83,21 +83,41 @@ try:
         assert old==original['profiles']['fixture']
         assert state['profiles']['other']==original['profiles']['other']
         passed('all original fixture histories, active old session and second profile unchanged')
-        page.locator('[data-act="home"]').first.click()
-        page.locator('[data-kind="mock"][data-mode="new"]').click()
+        page.goto(base+'index.html')
+        page.wait_for_function("!!document.querySelector('main#main')")
+        page.locator('[data-action="nav"][data-route="plan"]').click()
+        plan=page.locator('[data-applied-plan-date="2026-10-04"]')
+        plan.wait_for()
+        assert '開始' in plan.locator('.tag').inner_text()
+        plan.click()
+        page.get_by_role('heading',name='10/4 第1回').wait_for()
+        start_plan=page.locator('[data-act="start"][data-plan-date="2026-10-04"]')
+        assert start_plan.count()==1
+        start_plan.click()
         page.locator('.option').first.click()
         assert page.locator('.feedback,.right,.deep').count()==0
         page.locator('[data-act="next"]').click()
         page.locator('[data-act="previous"]').click()
         assert page.locator('.feedback,.right,.deep').count()==0
-        passed('mock answer and revisit do not leak correctness')
+        passed('scheduled mock launches from overdue plan card without leaking correctness')
         page.locator('[data-act="finish-early"]').click()
         assert page.locator('.result-item').count()==40
-        passed('40-question mock submits all answers before feedback')
+        state=page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
+        planned=state['profiles']['fixture']['appliedStudy']['sessions'][-1]
+        assert planned['total']==40 and planned['plannedDate']=='2026-10-04' and planned['plannedRound']==1
+        assert page.get_by_text('10/4 第1回',exact=True).count()>=1
+        passed('scheduled mock stores target round separately from actual finish time')
+        page.goto(base+'index.html')
+        page.wait_for_function("!!document.querySelector('main#main')")
+        page.locator('[data-action="nav"][data-route="plan"]').click()
+        done=page.locator('.plan-row',has_text='10/04　第1回')
+        done.wait_for()
+        assert done.locator('.tag').inner_text()=='実施済み'
+        assert done.get_attribute('data-applied-plan-date') is None
+        passed('completed catch-up round changes the original plan card to completed')
         page.goto(base+'index.html?legacy=1')
         page.wait_for_function("!!document.querySelector('main#main')")
         state=page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
-        assert state['profiles']['fixture']['appliedStudy']['sessions'][-1]['total']==40
         assert state['profiles']['fixture']['activeSession']==original['profiles']['fixture']['activeSession']
         passed('old application migration retains new history and old active session')
         page.goto(base+'index.html')
@@ -106,7 +126,7 @@ try:
         page.get_by_role('heading',name='いま解く').wait_for()
         passed('existing homepage launches new practice while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v11-20261004');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v11-1-20261005');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='いま解く').wait_for()
