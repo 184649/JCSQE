@@ -1,4 +1,4 @@
-name: Applied v11 checks
+name: Applied case-practice checks
 on:
   push:
     paths:
@@ -35,6 +35,8 @@ jobs:
           node --check applied-engine.js
           node --check applied-ui.js
           node --check applied-entry.js
+          node --check applied-hard-overrides.js
+          node --check applied-explanation-guide.js
           node --check sw.js
       - name: Install browser test dependencies
         run: |
