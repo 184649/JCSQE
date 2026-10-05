@@ -112,6 +112,25 @@ test('explanation guide covers all v12 topics with a rule and decision steps',()
  for(const topic of B.topics){assert(G[topic],topic);assert(G[topic].rule.length>=30,topic);assert(G[topic].trap.length>=20,topic);assert(Array.isArray(G[topic].steps));assert(G[topic].steps.length>=3,topic);}
 });
 
+test('2026-10-06 content audit corrections stay unambiguous and syllabus-focused',()=>{
+ const by=id=>B.byId.get(id);
+ const q3=by('A12-003');assert.match(q3.text,/対応として適切/);assert.equal(q3.correct,1);
+ const q5=by('A12-005');assert.equal(q5.syllabus,'1.3');assert(!q5.text.includes('MTTR'));assert.equal(q5.correct,0);assert.equal(q5.calculation.value,120);
+ const q6=by('A12-006');assert.equal(q6.syllabus,'1.3');assert(!q6.text.includes('MTTR'));assert.match(q6.options[q6.correct],/MTBFが改善した根拠はない/);
+ const q14=by('A12-014');assert.match(q14.text,/最も適切な説明/);assert(!q14.text.includes('言えない'));assert.equal(q14.correct,0);
+ const q60=by('A12-060');assert.equal(q60.correct,0);assert.match(q60.options[0],/Concept drift/);
+ assert(q60.options.every(x=>!/(Covariate shift|Label shift)/i.test(x)));
+ assert.match(q60.text,/同じ取引でも、不正である割合/);
+});
+
+test('all v12 numeric answers and registered explanations remain internally consistent',()=>{
+ for(const q of B.questions){
+  assert.equal(q.options.length,4,q.id);assert.equal(q.reasons.length,4,q.id);
+  assert(q.reasons[q.correct].length>=8,q.id);
+  if(q.calculation){assert(/^[\d.()+*/ -]+$/.test(q.calculation.expression),q.id);const value=Function('return ('+q.calculation.expression+')')();assert(Math.abs(value-q.calculation.value)<1e-9,q.id);}
+ }
+});
+
 test('unshown questions stay new and do not pollute repeat, weak, or delayed statistics',()=>{
  const p=profile();E.createSession(B,p,{count:5},T,rng(9));const shown=E.current(p).q;E.finish(p,T+1000);
  const st=E.stats(B,p,T+1001);assert.equal(st.newCount,63);assert.equal(st.answered,1);assert.equal(st.first.total,1);assert.equal(st.repeat.total,0);
