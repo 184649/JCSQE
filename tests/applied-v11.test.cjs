@@ -6,9 +6,9 @@ const T=Date.parse('2026-10-04T09:00:00+09:00');
 function rng(seed=1){let x=seed>>>0;return()=>{x=(Math.imul(1664525,x)+1013904223)>>>0;return x/4294967296;};}
 function profile(){return {name:'既存プロフィール',history:[{questionId:'E01Q01',correct:true}],sessions:[{id:'legacy-mock',correct:20}],bookmarks:['S7-001'],exposures:{E01Q01:1},activeSession:{id:'old-paused',questionIds:['E01Q01'],answers:{}},course:{history:[{old:true}]},dojo:{history:[{itemId:'DOJO-DEF-C001',correct:true}]}};}
 function complete(p,now=T+10000,choice='correct'){let s=E.active(p);for(let i=0;i<s.questionIds.length;i++){if(i!==s.index)E.go(p,i,now+i*1000);const q=E.current(p).q;E.answer(p,choice==='correct'?q.correct:null,choice==='correct'?'sure':'unknown',now+i*1000+500);}return E.finish(p,now+s.questionIds.length*1000);}
-test('64 unique authored tasks / 32 topics / all metadata and explicit distractor explanations',()=>{
+test('v12 has 64 understanding-first tasks / 32 topics with distinction notes',()=>{
  assert.equal(B.questions.length,64);assert.equal(B.topics.length,32);assert.equal(B.chapters.length,5);
- const tasks=new Set();for(const q of B.questions){assert(q.brief.length<=80);assert.equal(q.reasons.length,4);assert(q.reasons.every(x=>x.length>=8));assert(q.source.startsWith('https://www.juse.jp/'));assert(q.sourceNote);tasks.add(q.task);}
+ const tasks=new Set();for(const q of B.questions){assert.match(q.id,/^A12-\d{3}$/);assert.equal(q.revision,2);assert.equal(q.hardness,'理解重視');assert(q.brief.length<=80);assert.equal(q.reasons.length,4);assert(q.reasons.every(x=>x.length>=8));assert(q.distinction.length>=30);assert(q.source.startsWith('https://www.juse.jp/'));assert(q.sourceNote);tasks.add(q.task);}
  assert(tasks.size>=12);for(const t of B.topics){const a=B.questions.filter(q=>q.topicKey===t);assert.equal(a.length,2);assert.notEqual(a[0].task,a[1].task);}
 });
 test('all numeric oracle expressions independently evaluated',()=>{
@@ -65,6 +65,14 @@ test('initial vs repeat stats do not use previous bank scores',()=>{
  const p=profile();assert.equal(E.stats(B,p,T).first.total,0);E.createSession(B,p,{count:1,topic:'vv'},T,rng(6));const q=E.current(p).q;complete(p);assert.equal(E.stats(B,p,T).first.total,1);
  E.profile(p).bookmarks=[q.id];E.createSession(B,p,{count:1,mode:'bookmarks'},T+30000,rng(6));complete(p,T+40000);assert.equal(E.stats(B,p,T).repeat.total,1);
 });
+test('v11 history is preserved but does not inflate v12 first/repeat/due statistics',()=>{
+ const p=profile(),a=E.profile(p);
+ a.history.push({questionId:'A11-001',topicKey:'vv',correct:false,confidence:'sure',observed:true,firstExposure:true,at:T-10*E.DAY});
+ a.exposures['A11-001']=T-10*E.DAY;
+ const st=E.stats(B,p,T);
+ assert.equal(st.first.total,0);assert.equal(st.repeat.total,0);assert.equal(st.newCount,64);assert.equal(st.dueTopics,0);assert.equal(st.weakTopics,0);
+});
+
 test('new mock refuses to repeat after 40 seen; mixed remains available',()=>{
  const p=profile();E.createSession(B,p,{count:40,kind:'mock',mode:'new'},T,rng(44));complete(p);assert.equal(E.stats(B,p,T).newCount,24);
  let x=E.createSession(B,p,{count:40,kind:'mock',mode:'new'},T+500000,rng(4));assert.equal(x.session,null);assert.match(x.warning,/24問/);
@@ -90,12 +98,12 @@ test('copying a selected past result is read-only',()=>{
 });
 test('new launcher retains legacy script URLs and scoped offline pages',()=>{
  const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- for(const name of ['questions.js?v=4','supplement.js?v=7','syllabus-course.js?v=9','course-engine.js?v=9','dojo-engine.js?v=9','study-core.js?v=9','study-app.js?v=10.1','applied-entry.js?v=11.1'])assert(html.includes(name));
+ for(const name of ['questions.js?v=4','supplement.js?v=7','syllabus-course.js?v=9','course-engine.js?v=9','dojo-engine.js?v=9','study-core.js?v=9','study-app.js?v=10.1','applied-entry.js?v=12.0'])assert(html.includes(name));
  const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');assert(sw.includes("url.pathname.endsWith('/practice.html')?'./practice.html':'./index.html'"));assert(sw.includes("key.startsWith('jcsqe-shokyu-')"));
   assert(html.includes('study.css?v=10.2'));
-  const practice=fs.readFileSync(path.join(root,'practice.html'),'utf8');assert(practice.includes('applied-ui.js?v=11.1'));
+  const practice=fs.readFileSync(path.join(root,'practice.html'),'utf8');assert(practice.includes('applied-hard-overrides.js?v=12.0'));assert(practice.includes('applied-bank.js?v=12.0'));assert(practice.includes('applied-ui.js?v=12.0'));
   const entry=fs.readFileSync(path.join(root,'applied-entry.js'),'utf8');assert(entry.includes('data-applied-plan-date'));assert(entry.includes('未実施・開始'));
-  const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');assert(ui.includes('data-plan-date'));assert(ui.includes('plannedDate'));
+  const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');assert(ui.includes('data-plan-date'));assert(ui.includes('plannedDate'));assert(ui.includes('似た概念との見分け方'));
 });
 
 test('unshown questions stay new and do not pollute repeat, weak, or delayed statistics',()=>{

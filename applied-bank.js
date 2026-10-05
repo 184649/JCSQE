@@ -1,6 +1,10 @@
-/* v11: individually authored case data; shared metadata only is factored out. */
-(function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.JCSQEAppliedBank=factory();})(typeof window!=='undefined'?window:globalThis,function(){
-const common={"revision":1,"source":"https://www.juse.jp/jcsqe/content/jcsqe_beginner_syllabus_ver_3_0.pdf","sourceType":"独自作成・事例演習","sourceNote":"範囲・知識レベルの参照。公式問題・公式解答ではありません。"};
+/* v12: understanding-first case bank. v11 stems are retained where useful, but
+   IDs are renewed and distractors are hardened so old exposure is not counted as new. */
+(function(root,factory){
+ if(typeof module==='object'&&module.exports)module.exports=factory(require('./applied-hard-overrides.js'));
+ else root.JCSQEAppliedBank=factory(root.JCSQEAppliedHardOverrides);
+})(typeof window!=='undefined'?window:globalThis,function(hard){
+const common={"revision":2,"source":"https://www.juse.jp/jcsqe/content/jcsqe_beginner_syllabus_ver_3_0.pdf","sourceType":"独自作成・理解重視事例演習","sourceNote":"範囲・知識レベルの参照。公式問題・公式解答ではありません。選択肢は同一論点内の誤解を含むよう調整しています。"};
 const refs=[[{"label":"NASA: Product Validation","url":"https://www.nasa.gov/reference/5-4-product-validation/"}],[],[{"label":"NIST: 不適合品と個々の欠陥","url":"https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc331.htm"}],[{"label":"Google: Precision / Recall","url":"https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall"}]];
 const questions=[
 {"id":"A11-001","topicKey":"vv","topic":"検証と妥当性確認","chapter":"品質の概念","syllabus":"1.3.4","level":"L2","task":"追加確認の選択","text":"勤怠アプリは承認済み仕様の計算例をすべて満たした。しかし試用した夜勤担当者から「日をまたぐ勤務を登録する操作が実務に合わない」と指摘された。次に不足を確かめる活動はどれか。","options":["計算例を別のプログラミング言語で再実行する","夜勤担当者の実際の勤務登録を試してもらう","計算処理の命令網羅率を測り直す","承認済み仕様とコードの対応表を再点検する"],"reasons":["同じ仕様の照合だけでは利用目的との不一致を確認できない。","実際の用途とニーズを満たすかを確かめる妥当性確認になる。","内部構造の実行範囲と実務への適合は別の観点。","規定要求への適合確認であり、実際の用途の確認とは異なる。"],"correct":1,"brief":"仕様に合うだけでなく、実際の用途に合うかを確認する。","detail":"計算例の照合はVerificationに当たる。夜勤担当者の業務に役立つかという不足にはValidationが必要。同じ試験を増やすより、確認する基準を利用目的へ切り替える。","_r":0},
@@ -67,6 +71,11 @@ const questions=[
 {"id":"A11-062","topicKey":"cloud","topic":"クラウドの責任と水準","chapter":"応用領域","syllabus":"5.4 / 5.4.1","level":"L1","task":"合意条件の計算","text":"SLAは月間稼働率99.9%以上とする。今回の月は30日、計画停止などの除外はなく、停止時間は30分だった。稼働率を「(総時間−停止時間)/総時間」で計算するとどうなるか。","options":["約99.93%で、この稼働率条件を満たす","99.0%で、この条件を満たさない","90.0%で、この条件を満たさない","100%で、この条件を満たす"],"reasons":["総時間43,200分、停止30分なので約99.9306%。","停止30分を総時間の1%と誤認している。","30日という日数と停止30分の単位を混同している。","停止した30分も含めた実績を計算する。"],"correct":0,"brief":"SLAの分母・除外条件・単位をそろえて計算する。","detail":"30×24×60=43,200分。稼働率=(43,200−30)/43,200×100≒99.93%。満たすといえるのはこの稼働率条件であり、SLAの他の条件まで合格とは限らない。","calculation":{"expression":"(43200-30)/43200*100","value":99.93055555555556,"unit":"%"},"_r":1},
 {"id":"A11-063","topicKey":"devops","topic":"継続的な品質確認","chapter":"応用領域","syllabus":"5.3.3","level":"L2","task":"フィードバックの改善","text":"各開発者の変更を月末にまとめて統合すると、多くの不整合が同時に見つかり原因を追いにくい。改善として最も適切なのはどれか。","options":["月末の統合日は変えず、各人のブランチが単独で動くことだけを終了条件にする","小さい変更を頻繁に統合し、ビルド・試験結果を確認する","毎日ビルドするが、統合失敗への対応は従来通り月末にまとめる","各開発者のブランチだけが動けば統合確認を省く"],"reasons":["各ブランチの単独動作だけでは、統合時に生じる不整合を早期検出できない。","統合の差分を小さくして、原因を追いやすい時点でフィードバックを得る。","自動化しても不整合への対応を遅らせると、早期解決の効果が弱くなる。","組み合わせたときの問題を見逃す。"],"correct":1,"brief":"CIの中心は、頻繁な統合と速いフィードバック。自動化だけではない。","detail":"小さい変更なら原因を追いやすい。自動ビルドやテストが失敗したときに確認・修正する運用を含めて、継続的統合を機能させる。","_r":1},
 {"id":"A11-064","topicKey":"devops","topic":"継続的な品質確認","chapter":"応用領域","syllabus":"5.3.3","level":"L2","task":"段階的なリリース判断","text":"新しい検索機能を一部の利用者へ先行提供したところ、従来版よりエラー率が高かった。全面展開する前の判断として最も適切なのはどれか。","options":["先行提供で異常を観測しても、全体への展開率を先に100%へ引き上げてから調べる","新版の平均応答時間だけが良ければ、エラー率の悪化はリリース判断から除外する","展開を止め、基準に沿って切戻しや原因調査を行う","先行利用者数が少ないので比較は不要とし、利用者数を増やすことを先に優先する"],"reasons":["影響を限定して判断する意義を損ない、確認前に影響を拡大する。","速度の改善があっても、別の重要指標であるエラー率を無視する理由にはならない。","限定提供で得た情報を、次の展開の判断に反映する。","データ量の十分性は評価が必要だが、観測された悪化を確認せず影響を広げてよいわけではない。"],"correct":2,"brief":"段階的な提供は、観測した結果を次の展開判断へ使うために行う。","detail":"カナリア方式では影響範囲を抑えて変化を観測する。比較条件や指標、停止・切戻し基準を用意して運用する。","_r":1}
-].map(q=>{const {_r,...rest}=q;return {...common,...rest,...(_r===undefined?{}:{references:refs[_r]})};});
-return {"version":"11.0","published":false,"sourceType":"独自問題","coverageNote":"32テーマ64問。公式と同一難易度ではなく、全範囲や独立した模試10回分の完成を意味しません。",questions};
+].map(q=>{
+ const baseId=q.id, override=hard?.questions?.[baseId]||{}, distinction=hard?.distinctions?.[q.topicKey]||'';
+ const {_r,...rest}=q;
+ return {...common,...rest,...override,id:baseId.replace(/^A11-/,'A12-'),revision:2,
+   distinction,hardness:'理解重視',...( _r===undefined?{}:{references:refs[_r]})};
+});
+return {"version":"12.0","published":true,"sourceType":"独自問題・理解重視","coverageNote":"32テーマ64問。選択肢を同じ論点内で比較する理解重視版。公式と同一難易度ではなく、全範囲や独立した模試10回分の完成を意味しません。",questions};
 });

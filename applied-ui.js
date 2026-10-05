@@ -43,7 +43,7 @@ function save() {
     const next=JSON.stringify(state); localStorage.setItem(KEY,next); lastRaw=next; return true;
   } catch { blocked=true; storageError='端末への保存に失敗しました。履歴はこの画面にあります。JSONを書き出して保管してください。'; return false; }
 }
-function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v11.1 · 事例で考える演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
+function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v12.0 · 理解重視の事例演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
 function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('演習を選ぶ','home')}${btn('新演習の記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
 function metric(n,label) {return `<div class="metric"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function ratio(x) {return x.total?`${x.correct}/${x.total}`:'—';}
@@ -62,25 +62,33 @@ function home() {
   const plannedPanel=plannedDate?`<section class="panel planned-round"><span class="tag">学習計画</span><h2 style="margin-top:10px">${planLabel(plannedDate,plannedRound)}</h2>${plannedDone?'<p>この回は実施済みです。結果は「新演習の記録」から確認できます。</p>':plannedActive?'<p>この回は途中です。上の「同じ問題から再開」から続けてください。</p>':s?'<p>別の演習が途中です。先に再開または終了してから、この回を開始してください。</p>':`<p>予定日を過ぎていても、この回として記録して実施できます。実施日は別に保存します。</p><p>${btn('この回の40問・60分を開始','start',`data-count="40" data-mode="${plannedMode}" data-kind="mock" data-plan-date="${plannedDate}" data-plan-round="${plannedRound||''}"`,true)}</p><p class="muted">${plannedMode==='new'?'未表示問題を優先して40問出題します。':'未表示が40問未満のため、復習問題を含めて40問出題します。'}</p>`}</section>`:'';
   const chapters=B.chapters.map(x=>`<option value="${esc(x)}" ${filters.chapter===x?'selected':''}>${esc(x)}</option>`).join('');
   const topics=[...new Map(B.questions.filter(x=>filters.chapter==='all'||x.chapter===filters.chapter).map(q=>[q.topicKey,q.topic])).entries()];
-  return `<section class="hero"><div class="eyebrow">READ · REASON · REMEMBER</div><h1>覚えた言葉を、<br><em>使える知識に。</em></h1><p class="muted">用語の言い換えではなく、条件・結果・理由から判断します。</p></section>
+  return `<section class="hero"><div class="eyebrow">READ · REASON · DISTINGUISH</div><h1>消去法ではなく、<br><em>根拠で選ぶ。</em></h1><p class="muted">4択を同じ論点の中で比較し、問題文の条件を理解しないと切り分けにくい構成です。</p></section>
   ${DEMO?'<div class="notice">このファイルは動作確認用です。公開サイトの履歴とは別に保存します。GitHubへは未反映です。</div>':''}
   ${plannedPanel}
   ${s?`<section class="panel"><h2>途中の演習</h2><p>${s.kind==='mock'?'40問・時間制限つき':'事例演習'}　${s.index+1}/${s.questionIds.length}問目</p>${s.kind==='mock'?'<p class="muted">中断中も60分の時計は進みます。</p>':''}<div class="row">${btn('同じ問題から再開','resume','',true)}${btn('ここまでで終了・採点','finish-early')}</div></section>`:''}
   <div class="metrics">${metric(st.newCount,'このブラウザで未表示')}${metric(st.dueTopics,'復習期日のテーマ')}${metric(st.answered+'/'+st.total,'回答した問題')}</div>
   <section class="panel"><h2>いま解く</h2><div class="grid">${[3,5,10].map(n=>`<button class="start-card ${n===5?'primary':''}" data-act="start" data-count="${n}" data-mode="smart"><strong>${n}問</strong><span>${n===3?'短い空き時間':n===5?'判断を積み重ねる':'じっくり取り組む'}</span></button>`).join('')}</div>
   <div class="row" style="margin-top:12px">${btn('日を空けた復習','start','data-count="5" data-mode="due"')}${btn('未表示だけ10問','start','data-count="10" data-mode="new"')}</div>
-  <p class="muted">同テーマの連続を抑え、未表示と復習期日の問題を優先します。選択肢の本文をタップすると確信あり、右の△なら迷いありで1回で回答できます。</p></section>
+  <p class="muted">同テーマの連続を抑え、未表示と復習期日の問題を優先します。選択肢は同じ論点内の近い考え方を中心に構成しています。本文タップ＝確信あり、右の△＝迷いありです。</p></section>
   <section class="panel"><h2>絞り込んで考える</h2><div class="filter-grid"><label>分野<select id="chapter"><option value="all">すべて</option>${chapters}</select></label><label>テーマ<select id="topic"><option value="all">すべて</option>${topics.map(([id,label])=>`<option value="${id}" ${filters.topic===id?'selected':''}>${esc(label)}</option>`).join('')}</select></label></div>
   <div class="row">${btn('この条件で10問','start','data-count="10" data-mode="smart"',true)}${btn('弱点の別事例','start','data-count="5" data-mode="wrong"')}${btn('保存した問題','start','data-count="10" data-mode="bookmarks"')}</div><p class="muted">問題が少ない条件では、重複で水増しせず実際の問数を表示します。同日中の再確認は、遅延確認と分けて記録します。</p></section>
   <section class="panel"><h2>40問・60分の総合演習</h2><p>終了するまで正解・解説は出しません。回答を後から変更できます。</p><div class="grid two">${btn('未表示40問で開始','start','data-count="40" data-mode="new" data-kind="mock"',true)}${btn('復習を含む40問','start','data-count="40" data-mode="mixed" data-kind="mock"')}</div><p class="muted">初見40問は未表示が40問以上あるときだけ開始します。64問を使い回して「独立した模試10回分」とは数えません。外で既に見た問題かは判別できません。</p></section>
-  <section class="panel"><h2>「正解」を分けて見る</h2><div class="metrics">${metric(ratio(st.first),'このブラウザで初回')}${metric(ratio(st.repeat),'再表示・再回答')}${metric(ratio(st.delayed),'別事例・2日以上後')}</div><p class="muted">64問・32テーマの独自問題です。テーマ全体の習得率ではなく、本番と同じ難易度や合格を保証するものでもありません。旧演習の得点は新演習の成績へ混ぜません。</p></section>`;
+  <section class="panel"><h2>「正解」を分けて見る</h2><div class="metrics">${metric(ratio(st.first),'このブラウザで初回')}${metric(ratio(st.repeat),'再表示・再回答')}${metric(ratio(st.delayed),'別事例・2日以上後')}</div><p class="muted">64問・32テーマの理解重視版です。v11までの得点はv12の初回成績へ混ぜません。公式問題と同一難易度や合格を保証するものではありません。</p></section>`;
 }
 function feedback(q, selected, order, confidence) {
   const letter=letters[order.indexOf(q.correct)];
   const selectedLabel=Number.isInteger(selected)?`${letters[order.indexOf(selected)]}. ${q.options[selected]}`:'分からない／未回答';
   const status=selected===q.correct?(confidence==='guess'?'正解・迷いあり':'正解'):'ここを確認';
-  return `<section class="panel feedback ${selected===q.correct?'':'incorrect'}" tabindex="-1" aria-live="polite"><h2>${status}</h2><p class="result-answer">正解：<b>${letter}. ${esc(q.options[q.correct])}</b><br>あなたの回答：${esc(selectedLabel)}</p><div class="brief"><b>覚えるポイント</b><p>${esc(q.brief)}</p></div>
-  <details class="deep"><summary>詳細な解説を見る</summary><div class="body"><h3>なぜそう判断するか</h3><p>${esc(q.detail)}</p><h3>選択肢の違い</h3>${order.map((n,i)=>`<div class="reason"><b>${letters[i]}. ${esc(q.options[n])}</b><p>${esc(q.reasons[n])}</p></div>`).join('')}<p class="muted">${esc(q.topic)} / 公式シラバス項目 ${esc(q.syllabus)} / 項目の知識レベル ${esc(q.level)}。問題自体の難易度が公式と同じという意味ではありません。</p><p class="reference"><a href="${esc(q.source)}" target="_blank" rel="noopener noreferrer">公式シラバス（範囲の参照）</a></p>${(q.references||[]).filter(r=>String(r.url).startsWith('https://')).map(r=>`<p class="reference"><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)}</a></p>`).join('')}</div></details></section>`;
+  const calc=q.calculation?`<div class="explain-step"><h3>計算の確認</h3><p><code>${esc(q.calculation.expression)}</code> ＝ <b>${esc(q.calculation.value)}${esc(q.calculation.unit||'')}</b></p><p class="muted">式だけでなく、分母・単位・何を数えているかまで確認してください。</p></div>`:'';
+  return `<section class="panel feedback ${selected===q.correct?'':'incorrect'}" tabindex="-1" aria-live="polite"><h2>${status}</h2><p class="result-answer">正解：<b>${letter}. ${esc(q.options[q.correct])}</b><br>あなたの回答：${esc(selectedLabel)}</p><div class="brief"><b>まず覚えるポイント</b><p>${esc(q.brief)}</p></div>
+  <details class="deep"><summary>${selected===q.correct&&confidence==='sure'?'詳細な解説を見る':'詳細な解説を見る（推奨）'}</summary><div class="body">
+  <div class="explain-step"><h3>1. 問題文のどこを見るか</h3><p>${esc(q.brief)}</p></div>
+  <div class="explain-step"><h3>2. 正解までの考え方</h3><p>${esc(q.detail)}</p></div>
+  ${calc}
+  ${q.distinction?`<div class="explain-step distinction"><h3>3. 似た概念との見分け方</h3><p>${esc(q.distinction)}</p></div>`:''}
+  <div class="explain-step"><h3>4. 各選択肢を1つずつ検討</h3>${order.map((n,i)=>`<div class="reason ${n===q.correct?'reason-correct':''}"><b>${letters[i]}. ${esc(q.options[n])}</b><p>${esc(q.reasons[n])}</p></div>`).join('')}</div>
+  <div class="explain-step exam-check"><h3>5. 次回、自力で言えるか</h3><p>選択肢を隠した状態で「この問題の決め手」と「似た概念との違い」を1〜2文で説明できれば、暗記ではなく理解に近づいています。</p></div>
+  <p class="muted">${esc(q.topic)} / 公式シラバス項目 ${esc(q.syllabus)} / 項目の知識レベル ${esc(q.level)}。独自問題であり、公式問題と同一難易度を保証するものではありません。</p><p class="reference"><a href="${esc(q.source)}" target="_blank" rel="noopener noreferrer">公式シラバス（範囲の参照）</a></p>${(q.references||[]).filter(r=>String(r.url).startsWith('https://')).map(r=>`<p class="reference"><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)}</a></p>`).join('')}</div></details></section>`;
 }
 function quiz() {
   const v=E.view(p()); if (!v) {route='home';return home();}
@@ -89,7 +97,7 @@ function quiz() {
   <progress max="${v.total}" value="${v.index+1}" aria-label="演習の進捗"></progress>
   ${s.warning&&v.index===0?`<div class="notice">${esc(s.warning)}</div>`:''}
   <section class="panel"><div class="row" style="justify-content:flex-end">${btn(bookmarked?'★ 保存済み':'☆ あとで復習','bookmark',`aria-pressed="${bookmarked}"`)}</div>
-  <h1 class="question">${esc(v.question.text)}</h1><p class="muted">選択肢の本文：確信ありで回答 ／ 右の△：迷いありで回答</p>
+  <h1 class="question">${esc(v.question.text)}</h1><p class="muted">選択肢の本文：確信あり ／ 右の△：迷いあり。似た選択肢を、問題文の条件と根拠で切り分けてください。</p>
   <div class="options" role="group" aria-label="選択肢">${v.options.map(o=>`<div class="option-row"><button class="option ${o.selected?'chosen':''} ${v.revealed&&o.correct?'right':''} ${v.revealed&&o.selected&&!o.correct?'wrong':''}" data-act="answer" data-choice="${o.original}" data-confidence="sure" ${v.revealed?'disabled':''} aria-pressed="${o.selected}"><span class="letter">${letters[o.display]}</span><span>${esc(o.text)}</span></button><button class="guess" data-act="answer" data-choice="${o.original}" data-confidence="guess" ${v.revealed?'disabled':''} aria-label="選択肢${letters[o.display]}を迷いありで回答">△<small>迷い</small></button></div>`).join('')}</div>
   ${v.revealed?'':btn('分からない','unknown')} ${s.kind==='mock'&&Object.hasOwn(s.answers,v.question.id)?`<span class="tag">回答保存済み${v.confidence==='guess'?'・△迷い':''}</span>`:''}
   </section>${v.revealed?feedback(v.feedback,v.selected,s.orders[v.question.id],v.confidence):''}
