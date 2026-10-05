@@ -7,6 +7,9 @@ const KEY = DEMO ? 'jcsqe-v11-preview-state' : 'jcsqe-shokyu-state-v3';
 const $ = s => document.querySelector(s), rootEl = $('#applied-app'), letters = 'ABCD';
 const esc = x => String(x ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state, lastRaw = null, blocked = false, storageError = '', route = 'home', currentResult = null, waitingWorker = null, interval;
+const params=new URLSearchParams(location.search);
+const plannedDate=/^2026-(?:10|11)-\d{2}$/.test(params.get('plan')||'')?params.get('plan'):null;
+const plannedRound=Number.isFinite(Number(params.get('round')))&&Number(params.get('round'))>0?Number(params.get('round')):null;
 const filters = {chapter:'all',topic:'all'};
 const btn = (label, action, extra='', primary=false) => `<button data-act="${action}" ${extra} class="${primary?'primary':''}">${label}</button>`;
 function toast(s) { const el=$('#applied-toast'); el.textContent=s; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),4500); }
@@ -40,16 +43,28 @@ function save() {
     const next=JSON.stringify(state); localStorage.setItem(KEY,next); lastRaw=next; return true;
   } catch { blocked=true; storageError='端末への保存に失敗しました。履歴はこの画面にあります。JSONを書き出して保管してください。'; return false; }
 }
-function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v11.0 · 事例で考える演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
+function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v11.1 · 事例で考える演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
 function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('演習を選ぶ','home')}${btn('新演習の記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
 function metric(n,label) {return `<div class="metric"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function ratio(x) {return x.total?`${x.correct}/${x.total}`:'—';}
+function planLabel(date,round){if(!date)return'';const [,m,d]=date.split('-');return `${Number(m)}/${Number(d)} 第${round||'?'}回`;}
+function finishCurrent(){
+  const s=E.active(p()),meta=s?{plannedDate:s.plannedDate||null,plannedRound:s.plannedRound||null}:null;
+  const r=E.finish(p());
+  if(r&&meta?.plannedDate){r.plannedDate=meta.plannedDate;r.plannedRound=meta.plannedRound;}
+  return r;
+}
 function home() {
-  const st=E.stats(B,p()),s=E.active(p());
+  const st=E.stats(B,p()),s=E.active(p()),a=E.profile(p());
+  const plannedDone=plannedDate&&a.sessions.some(r=>r.kind==='mock'&&r.total===40&&r.plannedDate===plannedDate);
+  const plannedActive=plannedDate&&s?.kind==='mock'&&s.plannedDate===plannedDate;
+  const plannedMode=st.newCount>=40?'new':'mixed';
+  const plannedPanel=plannedDate?`<section class="panel planned-round"><span class="tag">学習計画</span><h2 style="margin-top:10px">${planLabel(plannedDate,plannedRound)}</h2>${plannedDone?'<p>この回は実施済みです。結果は「新演習の記録」から確認できます。</p>':plannedActive?'<p>この回は途中です。上の「同じ問題から再開」から続けてください。</p>':s?'<p>別の演習が途中です。先に再開または終了してから、この回を開始してください。</p>':`<p>予定日を過ぎていても、この回として記録して実施できます。実施日は別に保存します。</p><p>${btn('この回の40問・60分を開始','start',`data-count="40" data-mode="${plannedMode}" data-kind="mock" data-plan-date="${plannedDate}" data-plan-round="${plannedRound||''}"`,true)}</p><p class="muted">${plannedMode==='new'?'未表示問題を優先して40問出題します。':'未表示が40問未満のため、復習問題を含めて40問出題します。'}</p>`}</section>`:'';
   const chapters=B.chapters.map(x=>`<option value="${esc(x)}" ${filters.chapter===x?'selected':''}>${esc(x)}</option>`).join('');
   const topics=[...new Map(B.questions.filter(x=>filters.chapter==='all'||x.chapter===filters.chapter).map(q=>[q.topicKey,q.topic])).entries()];
   return `<section class="hero"><div class="eyebrow">READ · REASON · REMEMBER</div><h1>覚えた言葉を、<br><em>使える知識に。</em></h1><p class="muted">用語の言い換えではなく、条件・結果・理由から判断します。</p></section>
   ${DEMO?'<div class="notice">このファイルは動作確認用です。公開サイトの履歴とは別に保存します。GitHubへは未反映です。</div>':''}
+  ${plannedPanel}
   ${s?`<section class="panel"><h2>途中の演習</h2><p>${s.kind==='mock'?'40問・時間制限つき':'事例演習'}　${s.index+1}/${s.questionIds.length}問目</p>${s.kind==='mock'?'<p class="muted">中断中も60分の時計は進みます。</p>':''}<div class="row">${btn('同じ問題から再開','resume','',true)}${btn('ここまでで終了・採点','finish-early')}</div></section>`:''}
   <div class="metrics">${metric(st.newCount,'このブラウザで未表示')}${metric(st.dueTopics,'復習期日のテーマ')}${metric(st.answered+'/'+st.total,'回答した問題')}</div>
   <section class="panel"><h2>いま解く</h2><div class="grid">${[3,5,10].map(n=>`<button class="start-card ${n===5?'primary':''}" data-act="start" data-count="${n}" data-mode="smart"><strong>${n}問</strong><span>${n===3?'短い空き時間':n===5?'判断を積み重ねる':'じっくり取り組む'}</span></button>`).join('')}</div>
@@ -83,7 +98,7 @@ function quiz() {
 function result() {
   const r=currentResult||E.profile(p()).sessions.at(-1);
   if (!r) return '<div class="empty">終了した演習はまだありません。</div>';
-  return `<section class="hero"><div class="eyebrow">RESULT · 次に使える理解へ</div><div class="result-title">${r.correct}<small> / ${r.total}</small></div><p>${r.accuracy}% · ${r.kind==='mock'?'経過時間':'回答時間の累計'} ${Math.floor(r.elapsedSec/60)}分${r.elapsedSec%60}秒</p><p class="muted">初回表示 ${r.details.filter(d=>d.firstExposure).length}問／再表示・再回答 ${r.details.filter(d=>d.observed!==false&&!d.firstExposure).length}問／未表示・未回答 ${r.details.filter(d=>d.observed===false).length}問／迷い・不明 ${r.details.filter(d=>d.observed!==false&&d.confidence!=='sure').length}問。正答率だけで定着・合格とは判定しません。</p></section><div class="row">${btn('結果をコピー','copy','',true)}${btn('JSON保存','export')}${btn('演習を選ぶ','home')}</div>
+  return `<section class="hero"><div class="eyebrow">RESULT · 次に使える理解へ</div><div class="result-title">${r.correct}<small> / ${r.total}</small></div>${r.plannedDate?`<p><span class="tag">${planLabel(r.plannedDate,r.plannedRound)}</span>として実施</p>`:''}<p>${r.accuracy}% · ${r.kind==='mock'?'経過時間':'回答時間の累計'} ${Math.floor(r.elapsedSec/60)}分${r.elapsedSec%60}秒</p><p class="muted">初回表示 ${r.details.filter(d=>d.firstExposure).length}問／再表示・再回答 ${r.details.filter(d=>d.observed!==false&&!d.firstExposure).length}問／未表示・未回答 ${r.details.filter(d=>d.observed===false).length}問／迷い・不明 ${r.details.filter(d=>d.observed!==false&&d.confidence!=='sure').length}問。正答率だけで定着・合格とは判定しません。</p></section><div class="row">${btn('結果をコピー','copy','',true)}${btn('JSON保存','export')}${btn('演習を選ぶ','home')}</div>
   ${r.details.map((d,i)=>`<details class="result-item" data-review-id="${esc(d.questionId)}"><summary><span class="history-summary"><span>${d.correct?'○':'×'} 問${i+1} ${esc(r.questions[d.questionId].topic)}</span><small>${d.confidence==='guess'?'△':d.confidence==='unknown'?'?':''}</small></span></summary><div class="body"><p class="question" style="font-size:15px">${esc(r.questions[d.questionId].text)}</p>${feedback(r.questions[d.questionId],d.selected,d.order,d.confidence)}</div></details>`).join('')}`;
 }
 function history() {
@@ -91,12 +106,12 @@ function history() {
   return `<section class="hero"><h1>新演習の記録</h1><p class="muted">以前の問題・プロフィールはそのまま残しています。新しい事例問題の履歴は区別して保存します。</p></section><section class="panel"><label>プロフィール<select id="profile" class="profile-select">${Object.entries(state.profiles).map(([id,v])=>`<option value="${esc(id)}" ${id===state.activeProfileId?'selected':''}>${esc(v.name||'ユーザー')}</option>`).join('')}</select></label><div class="row" style="margin-top:14px">${btn('このプロフィールをJSON保存','export')}${btn('最新結果をコピー','copy')}</div></section>
   <div class="metrics">${metric(ratio(st.first),'初回表示の正解')}${metric(ratio(st.repeat),'再表示・再回答の正解')}${metric(ratio(st.delayed),'別事例・日を空けた正解')}</div>
   <section class="panel"><h2>復習の予定</h2><p class="muted">誤答・迷いは2日後、確信ありの正解は7日後を目安に別事例を優先します。正解が続いても全範囲の習得認定にはしません。</p><div class="table-wrap"><table><thead><tr><th>テーマ</th><th>最新の状態</th><th>次回目安</th></tr></thead><tbody>${[...topics.values()].filter(t=>t.last).map(t=>`<tr><td>${esc(B.questions.find(q=>q.topicKey===t.key).topic)}</td><td>${t.weak?'再確認が必要':t.confirmedAcrossCases?'別事例で遅延正解':'正解・継続確認'}</td><td>${new Date(t.dueAt+9*3600000).toISOString().slice(5,10)}</td></tr>`).join('')||'<tr><td colspan="3">まだ回答がありません。</td></tr>'}</tbody></table></div></section>
-  <section class="panel"><h2>終了した演習</h2>${a.sessions.slice().reverse().map(r=>`<p>${btn(`${new Date(r.finishedAt+9*3600000).toISOString().slice(0,10)}　${r.correct}/${r.total}　${r.kind==='mock'?'60分演習':'通常演習'}`,'open-result',`data-id="${esc(r.id)}"`)}</p>`).join('')||'<p class="muted">まだありません。</p>'}</section>`;
+  <section class="panel"><h2>終了した演習</h2>${a.sessions.slice().reverse().map(r=>`<p>${btn(`${new Date(r.finishedAt+9*3600000).toISOString().slice(0,10)}　${r.plannedDate?planLabel(r.plannedDate,r.plannedRound)+'　':''}${r.correct}/${r.total}　${r.kind==='mock'?'60分演習':'通常演習'}`,'open-result',`data-id="${esc(r.id)}"`)}</p>`).join('')||'<p class="muted">まだありません。</p>'}</section>`;
 }
 function expire() {
   const s=E.active(p());
   if (s?.kind==='mock' && Date.now()-s.startedAt>=s.durationMs) {
-    currentResult=E.finish(p());save();route='result';toast('60分になったため採点しました。');return true;
+    currentResult=finishCurrent();save();route='result';toast('60分になったため採点しました。');return true;
   }
   return false;
 }
@@ -124,6 +139,7 @@ async function handle(el) {
     if (kind==='mock'&&!confirm('40問・60分。途中の正解表示なし、中断中も時計は進みます。開始しますか？')) return;
     const opt={count:Number(el.dataset.count),mode:el.dataset.mode,kind,...(kind==='mock'?{}:filters)};
     const started=E.createSession(B,p(),opt); if(!started.session){toast(started.warning);return;}
+    if(el.dataset.planDate){started.session.plannedDate=el.dataset.planDate;started.session.plannedRound=Number(el.dataset.planRound)||null;}
     save();navigate('quiz');return;
   }
   if (act==='resume'){if(expire()){render();return;}E.resume(p());save();navigate('quiz');return;}
@@ -136,10 +152,10 @@ async function handle(el) {
   if (act==='next'||act==='previous'||act==='jump') {
     const s=E.active(p()); if(!s)return;
     let index=act==='next'?s.index+1:act==='previous'?s.index-1:Number(el.dataset.index);
-    if(index>=s.questionIds.length){if(s.kind==='mock'&&!confirm('終了して採点しますか？未回答は不正解として扱います。'))return;currentResult=E.finish(p());save();navigate('result');return;}
+    if(index>=s.questionIds.length){if(s.kind==='mock'&&!confirm('終了して採点しますか？未回答は不正解として扱います。'))return;currentResult=finishCurrent();save();navigate('result');return;}
     E.go(p(),index);save();render();window.scrollTo(0,0);return;
   }
-  if (act==='finish-early') {const s=E.active(p());if(!s)return;if(!confirm('ここまでで終了しますか？未回答も不正解として記録します。途中データを勝手に別問題へ置き換えません。'))return;currentResult=E.finish(p());save();navigate('result');return;}
+  if (act==='finish-early') {const s=E.active(p());if(!s)return;if(!confirm('ここまでで終了しますか？未回答も不正解として記録します。途中データを勝手に別問題へ置き換えません。'))return;currentResult=finishCurrent();save();navigate('result');return;}
   if (act==='bookmark'){const q=E.current(p()).q;if(q){E.bookmark(p(),q.id);save();render();}return;}
   if(act==='open-result'){currentResult=E.profile(p()).sessions.find(r=>r.id===el.dataset.id);navigate('result');return;}
   if(act==='copy'){await copyText(E.resultText(p(),route==='result'?currentResult:null));return;}
