@@ -41,6 +41,7 @@ function enhanceHome() {
   launch.innerHTML = '<span class="tag">v11.1 · 新しい演習</span><h1 style="margin-top:14px">言葉の暗記から、<br>条件を読み解く練習へ。</h1><p>64問・32テーマの独自問題。事例判断、比較、計算、テストの組み立てを混ぜて解きます。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">事例で考える演習を開く →</a></p><p class="muted">ワンタップ回答・要点＋詳細解説。旧履歴は残し、新演習の成績とは分けて管理します。公式問題や全範囲の網羅を保証するものではありません。</p>';
   main.append(launch, previous);
 }
+function setTextIfChanged(el,text){if(el.textContent!==text)el.textContent=text;}
 function enhancePlan() {
   const main=app.querySelector('main#main');
   if(!main) return;
@@ -70,19 +71,19 @@ function enhancePlan() {
     row.removeAttribute('role');row.removeAttribute('tabindex');
     delete row.dataset.appliedPlanDate;delete row.dataset.appliedPlanRound;
     if(completed){
-      tag.textContent='実施済み';
+      setTextIfChanged(tag,'実施済み');
       row.classList.add('plan-completed');
       continue;
     }
     if(inProgress){
-      tag.textContent='途中・再開 →';
+      setTextIfChanged(tag,'途中・再開 →');
       row.classList.add('plan-clickable');
       row.dataset.appliedPlanDate=date;row.dataset.appliedPlanRound=String(round);
       row.setAttribute('role','button');row.tabIndex=0;
       continue;
     }
     if(tag.textContent.includes('未実施')||tag.textContent.includes('今日')){
-      tag.textContent=tag.textContent.includes('今日')?'今日・開始 →':'未実施・開始 →';
+      setTextIfChanged(tag,tag.textContent.includes('今日')?'今日・開始 →':'未実施・開始 →');
       row.classList.add('plan-clickable');
       row.dataset.appliedPlanDate=date;row.dataset.appliedPlanRound=String(round);
       row.setAttribute('role','button');row.tabIndex=0;
