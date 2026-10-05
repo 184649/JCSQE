@@ -90,8 +90,12 @@ test('copying a selected past result is read-only',()=>{
 });
 test('new launcher retains legacy script URLs and scoped offline pages',()=>{
  const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- for(const name of ['questions.js?v=4','supplement.js?v=7','syllabus-course.js?v=9','course-engine.js?v=9','dojo-engine.js?v=9','study-core.js?v=9','study-app.js?v=10.1','applied-entry.js?v=11.0'])assert(html.includes(name));
+ for(const name of ['questions.js?v=4','supplement.js?v=7','syllabus-course.js?v=9','course-engine.js?v=9','dojo-engine.js?v=9','study-core.js?v=9','study-app.js?v=10.1','applied-entry.js?v=11.1'])assert(html.includes(name));
  const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');assert(sw.includes("url.pathname.endsWith('/practice.html')?'./practice.html':'./index.html'"));assert(sw.includes("key.startsWith('jcsqe-shokyu-')"));
+  assert(html.includes('study.css?v=10.2'));
+  const practice=fs.readFileSync(path.join(root,'practice.html'),'utf8');assert(practice.includes('applied-ui.js?v=11.1'));
+  const entry=fs.readFileSync(path.join(root,'applied-entry.js'),'utf8');assert(entry.includes('data-applied-plan-date'));assert(entry.includes('未実施・開始'));
+  const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');assert(ui.includes('data-plan-date'));assert(ui.includes('plannedDate'));
 });
 
 test('unshown questions stay new and do not pollute repeat, weak, or delayed statistics',()=>{
