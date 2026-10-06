@@ -1,4 +1,4 @@
-/* v13 benchmark UI */
+/* v14 benchmark UI */
 (() => {
 'use strict';
 const E=window.JCSQEBenchmark,B=E.bank(window.JCSQEBenchmarkBank),KEY='jcsqe-shokyu-state-v3';
@@ -28,7 +28,7 @@ function home(){
  }).join('');
  const activePanel=st.active?`<section class="panel"><h2>途中の本番演習</h2><p>第${st.active.form}回　${st.active.index+1}/40問</p><p class="muted">中断しても60分の時計は進みます。</p><div class="row">${button('再開','resume','',true)}${button('終了して採点','finish')}</div></section>`:'';
  return `<main class="benchmark-shell">
- <section class="benchmark-hero"><span class="tag">v13 · 公式公開問題準拠</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
+ <section class="benchmark-hero"><span class="tag">v14 · 公式公開問題の形式・難度アンカー準拠</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
  ${activePanel}
  ${planned}
  <section class="readiness-card ${r.stable80?'ready':''}"><div class="readiness-title">${esc(r.label)}</div><p>${esc(r.description)}</p>
@@ -42,12 +42,18 @@ function home(){
   ${metric(a.benchmarkForms+'/10','本番校正 完了')}
   ${metric(a.benchmarkQuestions+'/400','初見の本番校正問題')}
   ${metric(a.totalAnswers,'これまでの総回答履歴')}
-  ${metric(a.delayedTopics+'/32','日を空けて確認済みテーマ')}
+  ${metric(a.stability.repeated,'2回以上出た概念')}${metric(a.stability.unstable,'正誤が割れた概念')}
  </div>
+ <section class="panel"><h2>理解の安定性</h2><div class="progress-grid">
+  ${metric(r.stability.tested,'出題された概念')}
+  ${metric(r.stability.repeated,'2回以上確認')}
+  ${metric(r.stability.stable,'直近2回とも正解')}
+  ${metric(r.stability.unstable,'正誤が割れた概念')}
+ </div><p class="muted">△自己申告は使いません。同じ概念を別問題で複数回出し、正解と誤答が混ざる概念を「不安定」として表面化します。</p></section>
  <section class="panel"><h2>得点の積み上げ</h2>${scoreStrip(first)}<div class="badge-line">${badge(1,'1回完走',a.benchmarkForms>=1)}${badge(3,'3回継続',a.benchmarkForms>=3)}${badge(5,'200問到達',a.benchmarkQuestions>=200)}${badge(8,'最終仕上げ',a.benchmarkForms>=8)}${badge(10,'400問完走',a.benchmarkForms>=10)}</div></section>
  <section class="panel"><h2>直近3回の分野別</h2><div class="table-wrap"><table class="chapter-table"><thead><tr><th>分野</th><th>正解</th><th>正答率</th></tr></thead><tbody>${chapterRows(r.chapters)}</tbody></table></div><p class="muted">総合点だけで弱点が隠れないよう、80%圏判定では主要5分野すべて70%以上も確認します。</p></section>
  <section class="panel"><h2>本番校正10回</h2><div class="forms">${forms}</div><p class="muted">初回得点だけを到達判定に使います。再受験は復習として記録し、初回スコアを書き換えません。</p></section>
- <section class="panel"><h2>難易度の基準</h2><div class="calibration-note"><b>公式公開問題準拠</b><p>日科技連が公開している初級サンプル問題と第18・20・22・26回の出題解説を、選択肢の近さ・問い方・必要な知識レベルのアンカーとして使っています。公式問題そのものは転載していません。</p></div>
+ <section class="panel"><h2>難易度の基準</h2><div class="calibration-note"><b>公式公開問題の形式・難度アンカー準拠</b><p>日科技連の初級サンプル問題と第18・20・22・26回の公開解説に見られる、同一テーマの記述判定、複数穴の組合せ、近接技法の選択、計算・テスト設計を再現する方向で作っています。公式問題の文面は転載していません。</p></div>
  <p>公式試験は40問・60分、初級シラバスVer.3.0のL1〜L3が対象です。本番校正では、無関係な選択肢を消すだけで解けないよう、同じ分野の近接概念や説明を中心にしています。</p>
  <p><a class="button" href="./practice.html">通常の理解重視演習へ</a> <a class="button" href="./index.html">学習計画へ</a></p></section>
  </main>`;
@@ -56,22 +62,22 @@ function quiz(){
  const v=E.view(B,p()),s=active();if(!v){route='home';return home();}
  return `<main class="benchmark-shell"><div class="bench-top"><div><span class="tag">第${v.form}回 · ${v.firstAttempt?'初回':'再受験'}</span><p class="muted">${v.index+1}/40問　${v.id}　${esc(v.chapter)} / ${esc(v.level)}</p></div><strong class="bench-timer" id="timer">${format(v.remainingSec)}</strong></div>
  <progress max="40" value="${v.index+1}"></progress><section class="panel"><h1 class="bench-question">${esc(v.text)}</h1><p class="muted">本番と同様、終了するまで正解・解説は表示しません。選択肢は何度でも変更できます。</p>
- <div class="bench-options">${v.options.map(o=>`<div class="bench-option-row"><button class="bench-option ${o.selected?'chosen':''}" data-act="answer" data-choice="${o.original}" data-confidence="sure"><span class="letter">${letters[o.display]}</span><span>${esc(o.text)}</span></button><button class="bench-guess" data-act="answer" data-choice="${o.original}" data-confidence="guess" title="迷いあり">△</button></div>`).join('')}</div>
+ <div class="bench-options">${v.options.map(o=>`<div class="bench-option-row single"><button class="bench-option ${o.selected?'chosen':''}" data-act="answer" data-choice="${o.original}"><span class="letter">${letters[o.display]}</span><span>${esc(o.text)}</span></button></div>`).join('')}</div>
  <p>${button('分からない','unknown')}</p></section>
  <div class="row">${button('前へ','prev',v.index?'':'disabled')}${button(v.index===39?'終了前に確認':'次へ','next','',true)}</div>
- <div class="bench-jump">${s.ids.map((id,i)=>`<button data-act="jump" data-index="${i}" class="${i===s.index?'current':''} ${Object.hasOwn(s.answers,id)?'answered':''}">${i+1}${s.confidence[id]==='guess'?'△':''}</button>`).join('')}</div>
+ <div class="bench-jump">${s.ids.map((id,i)=>`<button data-act="jump" data-index="${i}" class="${i===s.index?'current':''} ${Object.hasOwn(s.answers,id)?'answered':''}">${i+1}</button>`).join('')}</div>
  ${button('終了して採点','finish')}
  </main>`;
 }
 function result(r){
  if(!r)return '<main class="benchmark-shell"><p>結果がありません。</p></main>';
  const rd=E.readiness(p());
- return `<main class="benchmark-shell"><section class="benchmark-hero"><span class="tag">第${r.form}回 · ${r.firstAttempt?'初回':'再受験'}</span><div class="result-score">${r.correct}<small>/40</small></div><p>${r.accuracy}% · ${Math.floor(r.elapsedSec/60)}分${r.elapsedSec%60}秒 · 迷い/不明 ${r.uncertain}問</p></section>
+ return `<main class="benchmark-shell"><section class="benchmark-hero"><span class="tag">第${r.form}回 · ${r.firstAttempt?'初回':'再受験'}</span><div class="result-score">${r.correct}<small>/40</small></div><p>${r.accuracy}% · ${Math.floor(r.elapsedSec/60)}分${r.elapsedSec%60}秒 · 未回答 ${r.unknown||0}問</p></section>
  <section class="readiness-card ${rd.stable80?'ready':''}"><div class="readiness-title">${esc(rd.label)}</div><p>${esc(rd.description)}</p></section>
  <div class="row">${button('ダッシュボードへ','home','',true)}${button('この回を再受験','retake',`data-form="${r.form}"`)}</div>
  <section class="panel"><h2>分野別</h2><div class="table-wrap"><table><thead><tr><th>分野</th><th>正解</th><th>正答率</th></tr></thead><tbody>${chapterRows(r.chapters)}</tbody></table></div></section>
  <section class="panel"><h2>40問の解説</h2><p class="muted">公式公開問題の解説と同じ考え方で、正解だけでなく各選択肢がなぜ成立／不成立かを確認します。</p>
- ${r.details.map((d,i)=>`<details class="result-question"><summary>${d.correct?'○':'×'} 問${i+1} ${esc(d.id)} ${d.confidence==='guess'?'△':d.confidence==='unknown'?'?':''}</summary><div class="body"><p class="bench-question" style="font-size:15px">${esc(d.question.text)}</p><p><b>正解：</b>${letters[d.order.indexOf(d.question.correct)]}. ${esc(d.question.options[d.question.correct])}</p><div class="explain-box correct"><b>判断のポイント</b><p>${esc(d.question.brief)}</p><p>${esc(d.question.detail)}</p></div><div class="explain-grid">${d.order.map((n,j)=>`<div class="explain-box ${n===d.question.correct?'correct':'wrong'}"><b>${letters[j]}. ${esc(d.question.options[n])}　${n===d.question.correct?'○':'×'}</b><p>${esc(d.question.reasons[n])}</p></div>`).join('')}</div></div></details>`).join('')}</section></main>`;
+ ${r.details.map((d,i)=>`<details class="result-question"><summary>${d.correct?'○':'×'} 問${i+1} ${esc(d.id)} ${d.selected===null?'?':''}</summary><div class="body"><p class="bench-question" style="font-size:15px">${esc(d.question.text)}</p><p><b>正解：</b>${letters[d.order.indexOf(d.question.correct)]}. ${esc(d.question.options[d.question.correct])}</p><div class="explain-box correct"><b>判断のポイント</b><p>${esc(d.question.brief)}</p><p>${esc(d.question.detail)}</p></div><div class="explain-grid">${d.order.map((n,j)=>`<div class="explain-box ${n===d.question.correct?'correct':'wrong'}"><b>${letters[j]}. ${esc(d.question.options[n])}　${n===d.question.correct?'○':'×'}</b><p>${esc(d.question.reasons[n])}</p></div>`).join('')}</div></div></details>`).join('')}</section></main>`;
 }
 function format(sec){sec=Math.max(0,sec);return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;}
 function render(){
@@ -86,7 +92,7 @@ async function act(el){
  if(a==='locked'){toast('前の回を完了すると開放されます。');return;}
  if(a==='resume'){route='quiz';render();return;}
  if(a==='open-result'){selectedResult=E.firstSessions(p()).find(x=>x.form===Number(el.dataset.form));route='result';render();return;}
- if(a==='answer'){E.answer(p(),Number(el.dataset.choice),el.dataset.confidence);save();render();return;}
+ if(a==='answer'){E.answer(p(),Number(el.dataset.choice));save();render();return;}
  if(a==='unknown'){E.unknown(p());save();render();return;}
  if(a==='prev'){const s=active();if(s&&s.index>0)E.go(p(),s.index-1);save();render();return;}
  if(a==='next'){const s=active();if(!s)return;if(s.index===39){toast('「終了して採点」で提出してください。');return;}E.go(p(),s.index+1);save();render();return;}
