@@ -256,7 +256,7 @@ function stats(b, p, now = Date.now()) {
 function bookmark(p, id) { const a = profile(p); a.bookmarks = a.bookmarks.includes(id) ? a.bookmarks.filter(x => x !== id) : [...a.bookmarks, id]; }
 function resultText(p, chosenResult = null) {
   const r = chosenResult || profile(p).sessions.at(-1); if (!r) return '事例演習の終了結果はまだありません。';
-  const version=Object.keys(r.questions||{}).some(id=>id.startsWith('A12-'))?'v12':'v11';
+  const ids=Object.keys(r.questions||{});const version=ids.some(id=>id.startsWith('B15-'))?'v15':ids.some(id=>id.startsWith('A12-'))?'v12':'v11';
   return [`JCSQE 事例演習 ${version} / ${r.id}`,`${r.kind === 'mock' ? '時間制限つき' : '通常演習'} ${r.correct}/${r.total} (${r.accuracy}%) / ${r.elapsedSec}秒`,
     '独自問題。公式と同一難易度ではなく、合格判定ではありません。',
     ...r.details.map((d, i) => `${i + 1}. ${d.questionId} ${d.correct ? '○' : '×'} ${d.confidence} ${d.observed === false ? '未表示・未回答' : d.firstExposure ? 'このブラウザで初回' : '再表示・再回答'}${d.otherCaseAfterDelay ? ' / 別事例の遅延確認' : ''}\n${r.questions[d.questionId].text}`)].join('\n');
