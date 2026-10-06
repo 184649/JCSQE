@@ -1,4 +1,4 @@
-/* v13 benchmark bank.
+/* v14 benchmark bank.
    Uses the 170 syllabus checkpoints already bundled with this site.
    Official public questions are used only as difficulty/style anchors; no official question text is copied. */
 (function(root,factory){
@@ -8,32 +8,114 @@
 'use strict';
 const rows=(concepts||[]).map(x=>({...x}));
 if(rows.length!==170)throw new Error('benchmark: syllabus checkpoints must be 170');
-let serial=1;const qs=[],id=()=>`B13-${String(serial++).padStart(3,'0')}`;
+let serial=1;const qs=[],id=()=>`B14-${String(serial++).padStart(3,'0')}`;
 const peers=q=>{
  const fam=rows.filter(x=>x.id!==q.id&&x.family===q.family);
  const chap=rows.filter(x=>x.id!==q.id&&x.chapter===q.chapter&&!fam.some(y=>y.id===x.id));
  return [...fam,...chap];
 };
-for(let i=0;i<rows.length;i++){
- const q=rows[i],p=peers(q)[i%peers(q).length];
- qs.push({id:id(),type:'contrast',chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
-  text:`次の説明①・②と用語の対応として、もっとも適切なものを選べ。\n\n① ${q.definition}\n② ${p.definition}`,
-  options:[`① ${q.term} ／ ② ${p.term}`,`① ${p.term} ／ ② ${q.term}`,`① ${q.term} ／ ② ${q.term}`,`① ${p.term} ／ ② ${p.term}`],correct:0,
-  brief:`①=${q.term}、②=${p.term}。同じ分野の近い概念を対象・目的・利用場面で区別する。`,
-  detail:`①は「${q.term}」、②は「${p.term}」の定義に対応する。`,
-  reasons:[`両方の対応が正しい。`,`①と②を逆にしている。`,`②は${p.term}であり両方を${q.term}にはできない。`,`①は${q.term}であり両方を${p.term}にはできない。`]});
+const customStatements={
+ C023:[
+  'ISMSは、情報セキュリティに関する方針・リスク・対策・評価・改善を組織として継続的に管理する仕組みである。',
+  'ISMSは、個別ソフトウェア製品の脆弱性が存在しないことを第三者が保証する制度である。',
+  'ISMSは、機密性だけを対象とし、完全性や可用性は対象外とする管理体系である。',
+  'ISMSは、セキュリティ事故が発生した後の技術的復旧だけを対象とする活動である。'
+ ],
+ C039:[
+  'スキル標準は、職務や役割に必要な能力を体系化し、育成や能力評価の基準として利用できる。',
+  'スキル標準は、個々の製品の品質特性を数値化するためのプロダクトメトリクスである。',
+  'スキル標準は、開発プロセスの成熟度を段階的に認証するプロセス評価モデルである。',
+  'スキル標準は、資格保有者だけを対象にした法的な業務独占基準である。'
+ ],
+ C043:[
+  'Quality Gateは、あらかじめ定めた品質基準を節目で確認し、次工程へ進むかを判断する仕組みである。',
+  'Quality Gateは、品質基準を満たさなくても納期が迫れば自動的に通過させる仕組みである。',
+  'Quality Gateは、リリース後に利用者満足度だけを測る評価方法である。',
+  'Quality Gateは、各担当者が個別判断で基準を変更することを前提とした仕組みである。'
+ ],
+ C044:[
+  '外部委託では、委託範囲や責任分担、受入れ条件などを明確にし、委託先の成果を管理する必要がある。',
+  '外部委託した範囲の品質責任はすべて委託先へ移るため、発注側の受入れや監視は不要となる。',
+  '外部委託では、契約後に要求が変化しても委託内容を見直してはならない。',
+  '外部委託では、成果物の品質よりも契約金額だけを管理対象とする。'
+ ],
+ C045:[
+  'リスクマネジメントは、リスクを識別・分析・評価し、対応を選択して継続的に管理する活動である。',
+  'リスクマネジメントは、発生済みの障害だけを記録し、将来起こり得る事象は扱わない。',
+  'リスクマネジメントでは、発生確率が低いリスクは影響度に関係なく無視する。',
+  'リスクマネジメントは、テスト工程だけで実施し、企画・設計・運用では扱わない。'
+ ],
+ C138:[
+  'PMBOKは、プロジェクトマネジメントの知識や実践を体系化したガイドとして利用される。',
+  'PMBOKは、ソフトウェア製品品質の8特性だけを定義する品質モデルである。',
+  'PMBOKは、テストプロセス成熟度だけを評価するモデルである。',
+  'PMBOKは、プログラムのソースコード規約を定める国際規格である。'
+ ],
+ C139:[
+  'ベンチマーキングは、他組織や優れた実践などとの比較から改善の手掛かりを得る方法である。',
+  'ベンチマーキングでは、他組織の事例を参照すると独自性が失われるため比較してはならない。',
+  'ベンチマーキングは、ソフトウェアの命令網羅率を計測するテスト技法である。',
+  'ベンチマーキングは、個人情報の影響を導入前に評価する活動である。'
+ ],
+ C083:[
+  'MTBFは、修理可能な対象について故障間の平均稼働時間を表す信頼性指標である。',
+  'MTBFは、故障してから修理が完了するまでの平均時間を表す指標である。',
+  'MTBFは、単位規模当たりの欠陥件数を表す品質指標である。',
+  'MTBFは、サービス契約で合意した月間稼働率そのものを表す指標である。'
+ ]
+};
+function sameFamilyPeers(q,index){
+ const fam=rows.filter(x=>x.id!==q.id&&x.family===q.family);
+ const chap=rows.filter(x=>x.id!==q.id&&x.chapter===q.chapter&&!fam.some(y=>y.id===x.id));
+ return [...fam,...chap].slice(index%Math.max(1,fam.length+chap.length)).concat([...fam,...chap]).filter((x,i,a)=>x&&a.findIndex(y=>y.id===x.id)===i);
 }
+function rotateChoice(options,correct,shift){
+ const items=options.map((text,i)=>({text,ok:i===correct}));
+ const n=((shift%items.length)+items.length)%items.length,out=items.slice(n).concat(items.slice(0,n));
+ return {options:out.map(x=>x.text),correct:out.findIndex(x=>x.ok)};
+}
+// FORMAT A: 170 multi-blank combination questions, modeled on the public multi-blank problems.
 for(let i=0;i<rows.length;i++){
- const q=rows[i],ps=peers(q),a=[q];
- for(const p of ps){if(a.length===4)break;if(!a.some(x=>x.id===p.id))a.push(p);}
- for(let k=0;a.length<4;k++){const p=rows[(i+k+17)%rows.length];if(!a.some(x=>x.id===p.id))a.push(p);}
- const bad=(i*3+1)%4,donor=(bad+1)%4;
- qs.push({id:id(),type:'mismatch',chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
-  text:'次の用語と説明の組合せのうち、もっとも不適切なものを選べ。',
-  options:a.map((x,j)=>`${x.term} ― ${j===bad?a[donor].definition:x.definition}`),correct:bad,
-  brief:'同一分野の用語を、説明の対象・目的・使い方まで一致するかで判断する。',
-  detail:`不適切なのは${'ABCD'[bad]}。${a[bad].term}に${a[donor].term}の説明を割り当てている。`,
-  reasons:a.map((x,j)=>j===bad?`${x.term}の説明ではない。この説明は${a[donor].term}に対応する。`:`${x.term}と説明が対応している。`)});
+ const q=rows[i],pool=sameFamilyPeers(q,i),cs=[q];
+ for(const p of pool){if(cs.length===4)break;if(!cs.some(x=>x.id===p.id))cs.push(p);}
+ for(let k=0;cs.length<4;k++){const p=rows[(i+k*11+23)%rows.length];if(!cs.some(x=>x.id===p.id))cs.push(p);}
+ const correct=cs.map(x=>x.term);
+ const combos=[
+  correct,
+  [correct[1],correct[0],correct[2],correct[3]],
+  [correct[0],correct[2],correct[1],correct[3]],
+  [correct[0],correct[1],correct[3],correct[2]]
+ ].map(a=>a.map((t,j)=>`(${j+1})${t}`).join(' / '));
+ const o=rotateChoice(combos,0,i%4);
+ qs.push({id:id(),type:'multi-blank',targetConceptIds:cs.map(x=>x.id),chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
+  text:`次の（1）～（4）の説明に対応する用語の組合せとして、もっとも適切なものを選べ。\n\n${cs.map((x,j)=>`（${j+1}）${x.definition}`).join('\n')}`,
+  options:o.options,correct:o.correct,
+  brief:'4つの近接概念を同時に区別する組合せ問題。1語だけ分かっても正解を確定しにくい。',
+  detail:`正しい対応は ${correct.map((t,j)=>`（${j+1}）${t}`).join('、')}。`,
+  reasons:o.options.map(x=>x===combos[0]?'4つすべての対応が正しい。':`一部の対応が入れ替わっている。正しくは ${correct.map((t,j)=>`（${j+1}）${t}`).join('、')}。`)});
+}
+// FORMAT B: 170 single-topic statement questions, modeled on public CI/GQM/quality-plan/configuration questions.
+for(let i=0;i<rows.length;i++){
+ const q=rows[i];
+ let statements=customStatements[q.id];
+ if(!statements){
+  const pool=sameFamilyPeers(q,169-i),ps=[];
+  for(const p of pool){if(ps.length===3)break;if(!ps.some(x=>x.id===p.id))ps.push(p);}
+  for(let k=0;ps.length<3;k++){const p=rows[(i+k*17+31)%rows.length];if(p.id!==q.id&&!ps.some(x=>x.id===p.id))ps.push(p);}
+  statements=[
+   `${q.term}は、${q.definition}`,
+   `${q.term}は、${ps[0].definition}`,
+   `${q.term}は、${ps[1].definition}`,
+   `${q.term}は、${ps[2].definition}`
+  ];
+ }
+ const o=rotateChoice(statements,0,(i*3+1)%4);
+ qs.push({id:id(),type:'same-topic-statement',targetConceptIds:[q.id],chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
+  text:`「${q.term}」に関する説明として、もっとも適切なものを選べ。`,
+  options:o.options,correct:o.correct,
+  brief:`${q.term}について、同じ分野の説明を比較し、対象・目的・適用範囲の違いを判断する。`,
+  detail:`適切なのは「${q.definition}」という説明。`,
+  reasons:o.options.map(x=>x===statements[0]?`${q.term}の対象・目的を正しく説明している。`:`同じ分野の別概念、または${q.term}の適用範囲を誤った説明である。`)});
 }
 const add=x=>qs.push({...x,id:id(),type:'applied'});
 const four=(fn)=>{for(let v=0;v<4;v++)add(fn(v));};
@@ -111,8 +193,8 @@ function distribute(items,cap){
 }
 distribute(qs.slice(0,170),17);distribute(qs.slice(170,340),17);distribute(qs.slice(340),6);
 for(const f of formSets){delete f.chapter;delete f.level;if(f.ids.length!==40)throw new Error('form length');}
-return {version:'13.0',published:true,total:400,forms:10,questions:qs,formSets,
- calibration:{label:'公式公開問題準拠',note:'日科技連が公開する初級サンプル問題・過去の出題解説を難易度・選択肢設計・説明粒度のアンカーにした独自問題。公式問題そのものではなく、本番得点の保証ではない。',
+return {version:'14.0',published:true,total:400,forms:10,questions:qs,formSets,
+ calibration:{label:'公式公開問題の形式・難度アンカー準拠',note:'日科技連の初級サンプル問題と第18・20・22・26回の公開解説に見られる形式（同一テーマの記述判定、複数穴の組合せ、近接技法の選択、計算・テスト設計）をアンカーにした独自問題。公式問題の転載ではなく、本番得点の保証ではない。',
   officialExam:{questions:40,minutes:60,levels:['L1','L2','L3'],passLine:'70%程度'},
   anchors:['https://www.juse.jp/jcsqe/content/jcsqe_beginner_sample.pdf','https://www.juse.jp/jcsqe/study/past/18_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/20_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/22_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/26_syokyu_discription.pdf']}};
 });
