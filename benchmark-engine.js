@@ -1,7 +1,7 @@
 /* v15 benchmark engine: fixed 10x40 first-attempt forms, 60-minute timing, readiness trend. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.JCSQEBenchmark=factory();})(typeof window!=='undefined'?window:globalThis,function(){
 'use strict';
-const clone=x=>JSON.parse(JSON.stringify(x)), letters='ABCD';
+const VERSION='15.0',clone=x=>JSON.parse(JSON.stringify(x)), letters='ABCD';
 function shuffle(a,random=Math.random){const x=a.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
 function bank(data){
  if(!data||data.questions?.length!==400||data.formSets?.length!==10)throw Error('本番演習データを確認できません。');
@@ -14,9 +14,10 @@ function state(p){
  if(!p.benchmarkStudy)p.benchmarkStudy={schema:1,serial:0,active:null,sessions:[]};
  const b=p.benchmarkStudy;
  if(b.schema!==1||!Array.isArray(b.sessions))throw Error('本番演習の保存形式を確認できません。');
+ if(b.active&&b.active.bankVersion&&b.active.bankVersion!==VERSION){b.legacyActive=b.active;b.active=null;}
  return b;
 }
-function currentSessions(p){return state(p).sessions.filter(x=>x.bankVersion==='15.0');}
+function currentSessions(p){return state(p).sessions.filter(x=>x.bankVersion===VERSION);}
 function firstSessions(p){const out=[];for(const s of currentSessions(p).filter(x=>x.firstAttempt).sort((a,b)=>a.finishedAt-b.finishedAt))if(!out.some(y=>y.form===s.form))out.push(s);return out;}
 function startedForms(p){return new Set(currentSessions(p).filter(x=>x.firstAttempt).map(x=>x.form));}
 function nextForm(p){const done=startedForms(p);for(let i=1;i<=10;i++)if(!done.has(i))return i;return null;}
@@ -92,5 +93,5 @@ function accumulation(p){
 function resultText(result){
  return [`JCSQE 本番校正演習 v15 / 第${result.form}回`,`${result.correct}/40 (${result.accuracy}%) / ${result.elapsedSec}秒 / ${result.firstAttempt?'初回':'再受験'}`,`未回答 ${result.unknown||0}問`].join('\n');
 }
-return {bank,state,start,active,view,answer,unknown,go,finish,firstSessions,nextForm,readiness,conceptStability,accumulation,resultText,letters};
+return {VERSION,bank,state,start,active,view,answer,unknown,go,finish,firstSessions,nextForm,readiness,conceptStability,accumulation,resultText,letters};
 });
