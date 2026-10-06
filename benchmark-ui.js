@@ -1,4 +1,4 @@
-/* v14 benchmark UI */
+/* v15 benchmark UI */
 (() => {
 'use strict';
 const E=window.JCSQEBenchmark,B=E.bank(window.JCSQEBenchmarkBank),KEY='jcsqe-shokyu-state-v3';
@@ -28,7 +28,7 @@ function home(){
  }).join('');
  const activePanel=st.active?`<section class="panel"><h2>途中の本番演習</h2><p>第${st.active.form}回　${st.active.index+1}/40問</p><p class="muted">中断しても60分の時計は進みます。</p><div class="row">${button('再開','resume','',true)}${button('終了して採点','finish')}</div></section>`:'';
  return `<main class="benchmark-shell">
- <section class="benchmark-hero"><span class="tag">v14 · 公式公開問題の形式・難度アンカー準拠</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
+ <section class="benchmark-hero"><span class="tag">v15 · 公式公開過去問の出題形式・難度アンカー準拠</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
  ${activePanel}
  ${planned}
  <section class="readiness-card ${r.stable80?'ready':''}"><div class="readiness-title">${esc(r.label)}</div><p>${esc(r.description)}</p>
@@ -53,8 +53,8 @@ function home(){
  <section class="panel"><h2>得点の積み上げ</h2>${scoreStrip(first)}<div class="badge-line">${badge(1,'1回完走',a.benchmarkForms>=1)}${badge(3,'3回継続',a.benchmarkForms>=3)}${badge(5,'200問到達',a.benchmarkQuestions>=200)}${badge(8,'最終仕上げ',a.benchmarkForms>=8)}${badge(10,'400問完走',a.benchmarkForms>=10)}</div></section>
  <section class="panel"><h2>直近3回の分野別</h2><div class="table-wrap"><table class="chapter-table"><thead><tr><th>分野</th><th>正解</th><th>正答率</th></tr></thead><tbody>${chapterRows(r.chapters)}</tbody></table></div><p class="muted">総合点だけで弱点が隠れないよう、80%圏判定では主要5分野すべて70%以上も確認します。</p></section>
  <section class="panel"><h2>本番校正10回</h2><div class="forms">${forms}</div><p class="muted">初回得点だけを到達判定に使います。再受験は復習として記録し、初回スコアを書き換えません。</p></section>
- <section class="panel"><h2>難易度の基準</h2><div class="calibration-note"><b>公式公開問題の形式・難度アンカー準拠</b><p>日科技連の初級サンプル問題と第18・20・22・26回の公開解説に見られる、同一テーマの記述判定、複数穴の組合せ、近接技法の選択、計算・テスト設計を再現する方向で作っています。公式問題の文面は転載していません。</p></div>
- <p>公式試験は40問・60分、初級シラバスVer.3.0のL1〜L3が対象です。本番校正では、無関係な選択肢を消すだけで解けないよう、同じ分野の近接概念や説明を中心にしています。</p>
+ <section class="panel"><h2>難易度の基準</h2><div class="calibration-note"><b>公式公開問題の形式・難度アンカー準拠</b><p>日科技連の初級サンプル問題と第18・20・22・26回の公開解説をアンカーに、同一テーマの記述判定、4空欄の組合せ、目的から技法を選ぶ事例、計算・テスト設計を混在させています。単語定義だけの問題は全体の一部に限定し、公式問題の文面は転載していません。</p></div>
+ <p>公式試験は40問・60分、初級シラバスVer.3.0のL1〜L3が対象です。本番校正では、4択すべてを同じ論点の中で比較できるようにし、同じ説明を重複させて実質2択になる構造を禁止しています。</p>
  <p><a class="button" href="./practice.html">通常の理解重視演習へ</a> <a class="button" href="./index.html">学習計画へ</a></p></section>
  </main>`;
 }
