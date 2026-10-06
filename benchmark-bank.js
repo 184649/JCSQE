@@ -251,7 +251,7 @@ for(let i=0;i<statementCandidates.length;i++){
 const scenarioTargets=rows.concat(rows.filter(x=>x.level==='L3'),rows.filter(x=>x.level==='L2').slice(0,20),rows.filter(x=>x.level==='L1').slice(0,7));
 for(let i=0;i<scenarioTargets.length;i++){
  const q=scenarioTargets[i],cs=chooseFour(q,i+11),raw=cs.map(x=>x.term),shift=(i*2+1)%4,o=rotateChoice(raw,0,shift);
- qs.push({id:id(),type:'scenario-selection',targetConceptIds:[q.id],chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
+ qs.push({id:id(),type:'scenario-selection',targetConceptIds:[q.id],optionConceptIds:cs.map(x=>x.id),chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
   text:scenarioLead(q,i),
   options:o.options,correct:o.correct,
   brief:`目的を先に読み、${q.term}と近接概念の適用範囲を比較する。`,
