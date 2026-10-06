@@ -61,7 +61,7 @@ four(v=>{const n=[400,250,500,800][v],bad=[20,10,30,32][v],def=[35,18,45,50][v];
  text:`検査${n}件のうち不適合が1つ以上ある対象は${bad}件、不適合そのものは${def}個だった。「不適合な対象の割合」をp管理図へ記す値はどれか。`,
  options:[`${bad}/${n}`,`${def}/${n}`,`${def}/${bad}`,`${n}/${bad}`],correct:0,brief:'p管理図は不適合単位の割合。',detail:`分子${bad}、分母${n}。`,
  reasons:['正しい。','欠陥個数を分子にしている。','単位当たり欠陥数に近い。','分子分母が逆。']};});
-four(v=>{const aa=[1.5,2,0.8,3][v],bb=[2,1,4,0][v],x=[4,5,10,3][v],y=aa*x+bb;return{chapter:'品質技術',family:'データ解析',level:'L3',syllabus:'3.9.4',
+four(v=>{const aa=[1.5,2,0.8,3][v],bb=[2,1,4,5][v],x=[4,5,10,3][v],y=aa*x+bb;return{chapter:'品質技術',family:'データ解析',level:'L3',syllabus:'3.9.4',
  text:`回帰式 y=${aa}x+${bb} にデータ範囲内のx=${x}を代入した予測値はどれか。`,options:[String(y),String(aa*x),String(y+aa),String(bb+x)],correct:0,
  brief:'回帰式には切片まで含めて代入する。',detail:`y=${aa}×${x}+${bb}=${y}。`,reasons:['正しい。','切片を落としている。','不要な項を足す。','式を使っていない。']};});
 four(v=>{const kx=[12,20,8,15][v],dx=[36,50,24,60][v],ky=[8,10,6,12][v],dy=[32,30,24,60][v],rx=dx/kx,ry=dy/ky;return{chapter:'品質技術',family:'測定',level:'L2',syllabus:'3.1.2 / 3.1.3',
