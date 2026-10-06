@@ -1,4 +1,4 @@
-/* v14 benchmark engine: fixed 10x40 first-attempt forms, 60-minute timing, readiness trend. */
+/* v15 benchmark engine: fixed 10x40 first-attempt forms, 60-minute timing, readiness trend. */
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.JCSQEBenchmark=factory();})(typeof window!=='undefined'?window:globalThis,function(){
 'use strict';
 const clone=x=>JSON.parse(JSON.stringify(x)), letters='ABCD';
@@ -16,7 +16,7 @@ function state(p){
  if(b.schema!==1||!Array.isArray(b.sessions))throw Error('本番演習の保存形式を確認できません。');
  return b;
 }
-function currentSessions(p){return state(p).sessions.filter(x=>x.bankVersion==='14.0');}
+function currentSessions(p){return state(p).sessions.filter(x=>x.bankVersion==='15.0');}
 function firstSessions(p){const out=[];for(const s of currentSessions(p).filter(x=>x.firstAttempt).sort((a,b)=>a.finishedAt-b.finishedAt))if(!out.some(y=>y.form===s.form))out.push(s);return out;}
 function startedForms(p){return new Set(currentSessions(p).filter(x=>x.firstAttempt).map(x=>x.form));}
 function nextForm(p){const done=startedForms(p);for(let i=1;i<=10;i++)if(!done.has(i))return i;return null;}
@@ -90,7 +90,7 @@ function accumulation(p){
  return {benchmarkQuestions:uniqueBenchmark,benchmarkForms:first.length,totalAnswers:legacy+course+dojo+applied+uniqueBenchmark,delayedTopics,stability};
 }
 function resultText(result){
- return [`JCSQE 本番校正演習 v14 / 第${result.form}回`,`${result.correct}/40 (${result.accuracy}%) / ${result.elapsedSec}秒 / ${result.firstAttempt?'初回':'再受験'}`,`未回答 ${result.unknown||0}問`].join('\n');
+ return [`JCSQE 本番校正演習 v15 / 第${result.form}回`,`${result.correct}/40 (${result.accuracy}%) / ${result.elapsedSec}秒 / ${result.firstAttempt?'初回':'再受験'}`,`未回答 ${result.unknown||0}問`].join('\n');
 }
 return {bank,state,start,active,view,answer,unknown,go,finish,firstSessions,nextForm,readiness,conceptStability,accumulation,resultText,letters};
 });
