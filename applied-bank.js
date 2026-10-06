@@ -77,5 +77,5 @@ const questions=[
  return {...common,...rest,...override,id:baseId.replace(/^A11-/,'A12-'),revision:2,
    distinction,hardness:'理解重視',...( _r===undefined?{}:{references:refs[_r]})};
 });
-return {"version":"12.0","published":true,"sourceType":"独自問題・理解重視","coverageNote":"32テーマ64問。選択肢を同じ論点内で比較する理解重視版。公式と同一難易度ではなく、全範囲や独立した模試10回分の完成を意味しません。",questions};
+return {"version":"12.2","published":true,"sourceType":"独自問題・理解重視","auditDate":"2026-10-06","coverageNote":"32テーマ64問。2026-10-06に問題文・登録正解・選択肢理由・計算・シラバス対応を再監査。公式問題と同一難易度ではなく、全範囲や独立した模試10回分の完成を意味しません。",questions};
 });

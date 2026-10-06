@@ -1,6 +1,6 @@
 /* Scoped cache: never delete caches belonging to other GitHub Pages apps. */
-const CACHE='jcsqe-shokyu-v12-1-20261006';
-const ASSETS=['./practice.html','./applied.css?v=12.1','./applied-hard-overrides.js?v=12.0','./applied-bank.js?v=12.0','./applied-engine.js?v=12.0','./applied-explanation-guide.js?v=12.1','./applied-ui.js?v=12.1','./applied-entry.js?v=12.1','./index.html','./study.css?v=10.2','./questions.js?v=4','./supplement.js?v=7','./syllabus-course.js?v=9','./course-engine.js?v=9','./dojo-engine.js?v=9','./study-core.js?v=9','./study-app.js?v=10.1','./manifest.webmanifest?v=10','./icon-192.png','./icon-512.png'];
+const CACHE='jcsqe-shokyu-v12-2-20261006';
+const ASSETS=['./practice.html','./applied.css?v=12.1','./applied-hard-overrides.js?v=12.2','./applied-bank.js?v=12.2','./applied-engine.js?v=12.0','./applied-explanation-guide.js?v=12.2','./applied-ui.js?v=12.2','./applied-entry.js?v=12.2','./index.html','./study.css?v=10.2','./questions.js?v=4','./supplement.js?v=7','./syllabus-course.js?v=9','./course-engine.js?v=9','./dojo-engine.js?v=9','./study-core.js?v=9','./study-app.js?v=10.1','./manifest.webmanifest?v=10','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('jcsqe-shokyu-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

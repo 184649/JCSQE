@@ -135,7 +135,7 @@ try:
         page.get_by_role('heading',name='いま解く').wait_for()
         passed('existing homepage launches new practice while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v12-1-20261006');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v12-2-20261006');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='いま解く').wait_for()

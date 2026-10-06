@@ -7,6 +7,7 @@ function rng(seed=1){let x=seed>>>0;return()=>{x=(Math.imul(1664525,x)+101390422
 function profile(){return {name:'既存プロフィール',history:[{questionId:'E01Q01',correct:true}],sessions:[{id:'legacy-mock',correct:20}],bookmarks:['S7-001'],exposures:{E01Q01:1},activeSession:{id:'old-paused',questionIds:['E01Q01'],answers:{}},course:{history:[{old:true}]},dojo:{history:[{itemId:'DOJO-DEF-C001',correct:true}]}};}
 function complete(p,now=T+10000,choice='correct'){let s=E.active(p);for(let i=0;i<s.questionIds.length;i++){if(i!==s.index)E.go(p,i,now+i*1000);const q=E.current(p).q;E.answer(p,choice==='correct'?q.correct:null,choice==='correct'?'sure':'unknown',now+i*1000+500);}return E.finish(p,now+s.questionIds.length*1000);}
 test('v12 has 64 understanding-first tasks / 32 topics with distinction notes',()=>{
+ assert.equal(data.version,'12.2');assert.equal(data.auditDate,'2026-10-06');
  assert.equal(B.questions.length,64);assert.equal(B.topics.length,32);assert.equal(B.chapters.length,5);
  const tasks=new Set();for(const q of B.questions){assert.match(q.id,/^A12-\d{3}$/);assert.equal(q.revision,2);assert.equal(q.hardness,'理解重視');assert(q.brief.length<=80);assert.equal(q.reasons.length,4);assert(q.reasons.every(x=>x.length>=8));assert(q.distinction.length>=30);assert(q.source.startsWith('https://www.juse.jp/'));assert(q.sourceNote);tasks.add(q.task);}
  assert(tasks.size>=12);for(const t of B.topics){const a=B.questions.filter(q=>q.topicKey===t);assert.equal(a.length,2);assert.notEqual(a[0].task,a[1].task);}
@@ -98,10 +99,10 @@ test('copying a selected past result is read-only',()=>{
 });
 test('new launcher retains legacy script URLs and scoped offline pages',()=>{
  const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
- for(const name of ['questions.js?v=4','supplement.js?v=7','syllabus-course.js?v=9','course-engine.js?v=9','dojo-engine.js?v=9','study-core.js?v=9','study-app.js?v=10.1','applied-entry.js?v=12.1'])assert(html.includes(name));
+ for(const name of ['questions.js?v=4','supplement.js?v=7','syllabus-course.js?v=9','course-engine.js?v=9','dojo-engine.js?v=9','study-core.js?v=9','study-app.js?v=10.1','applied-entry.js?v=12.2'])assert(html.includes(name));
  const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');assert(sw.includes("url.pathname.endsWith('/practice.html')?'./practice.html':'./index.html'"));assert(sw.includes("key.startsWith('jcsqe-shokyu-')"));
   assert(html.includes('study.css?v=10.2'));
-  const practice=fs.readFileSync(path.join(root,'practice.html'),'utf8');assert(practice.includes('applied-hard-overrides.js?v=12.0'));assert(practice.includes('applied-bank.js?v=12.0'));assert(practice.includes('applied-explanation-guide.js?v=12.1'));assert(practice.includes('applied-ui.js?v=12.1'));
+  const practice=fs.readFileSync(path.join(root,'practice.html'),'utf8');assert(practice.includes('applied-hard-overrides.js?v=12.2'));assert(practice.includes('applied-bank.js?v=12.2'));assert(practice.includes('applied-explanation-guide.js?v=12.2'));assert(practice.includes('applied-ui.js?v=12.2'));
   const entry=fs.readFileSync(path.join(root,'applied-entry.js'),'utf8');assert(entry.includes('data-applied-plan-date'));assert(entry.includes('未実施・開始'));
   const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');assert(ui.includes('data-plan-date'));assert(ui.includes('plannedDate'));assert(ui.includes('あなたの選択肢が誤りになる決定的理由'));assert(ui.includes('正解との直接比較'));assert(ui.includes('4択を同じ基準で検証'));
 });
@@ -110,6 +111,25 @@ test('new launcher retains legacy script URLs and scoped offline pages',()=>{
 test('explanation guide covers all v12 topics with a rule and decision steps',()=>{
  const G=require('../applied-explanation-guide.js');
  for(const topic of B.topics){assert(G[topic],topic);assert(G[topic].rule.length>=30,topic);assert(G[topic].trap.length>=20,topic);assert(Array.isArray(G[topic].steps));assert(G[topic].steps.length>=3,topic);}
+});
+
+test('2026-10-06 content audit corrections stay unambiguous and syllabus-focused',()=>{
+ const by=id=>B.byId.get(id);
+ const q3=by('A12-003');assert.match(q3.text,/対応として適切/);assert.equal(q3.correct,1);
+ const q5=by('A12-005');assert.equal(q5.syllabus,'1.3');assert(!q5.text.includes('MTTR'));assert.equal(q5.correct,0);assert.equal(q5.calculation.value,120);
+ const q6=by('A12-006');assert.equal(q6.syllabus,'1.3');assert(!q6.text.includes('MTTR'));assert.match(q6.options[q6.correct],/MTBFが改善した根拠はない/);
+ const q14=by('A12-014');assert.match(q14.text,/最も適切な説明/);assert(!q14.text.includes('言えない'));assert.equal(q14.correct,0);
+ const q60=by('A12-060');assert.equal(q60.correct,0);assert.match(q60.options[0],/Concept drift/);
+ assert(q60.options.every(x=>!/(Covariate shift|Label shift)/i.test(x)));
+ assert.match(q60.text,/同じ取引でも、不正である割合/);
+});
+
+test('all v12 numeric answers and registered explanations remain internally consistent',()=>{
+ for(const q of B.questions){
+  assert.equal(q.options.length,4,q.id);assert.equal(q.reasons.length,4,q.id);
+  assert(q.reasons[q.correct].length>=8,q.id);
+  if(q.calculation){assert(/^[\d.()+*/ -]+$/.test(q.calculation.expression),q.id);const value=Function('return ('+q.calculation.expression+')')();assert(Math.abs(value-q.calculation.value)<1e-9,q.id);}
+ }
 });
 
 test('unshown questions stay new and do not pollute repeat, weak, or delayed statistics',()=>{
