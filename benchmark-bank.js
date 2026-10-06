@@ -1,4 +1,4 @@
-/* v14 benchmark bank.
+/* v15 benchmark bank.
    Uses the 170 syllabus checkpoints already bundled with this site.
    Official public questions are used only as difficulty/style anchors; no official question text is copied. */
 (function(root,factory){
@@ -74,48 +74,105 @@ function rotateChoice(options,correct,shift){
  const n=((shift%items.length)+items.length)%items.length,out=items.slice(n).concat(items.slice(0,n));
  return {options:out.map(x=>x.text),correct:out.findIndex(x=>x.ok)};
 }
-// FORMAT A: 170 multi-blank combination questions, modeled on the public multi-blank problems.
-for(let i=0;i<rows.length;i++){
- const q=rows[i],pool=sameFamilyPeers(q,i),cs=[q];
- for(const p of pool){if(cs.length===4)break;if(!cs.some(x=>x.id===p.id))cs.push(p);}
- for(let k=0;cs.length<4;k++){const p=rows[(i+k*11+23)%rows.length];if(!cs.some(x=>x.id===p.id))cs.push(p);}
- const correct=cs.map(x=>x.term);
- const combos=[
-  correct,
-  [correct[1],correct[0],correct[2],correct[3]],
-  [correct[0],correct[2],correct[1],correct[3]],
-  [correct[0],correct[1],correct[3],correct[2]]
- ].map(a=>a.map((t,j)=>`(${j+1})${t}`).join(' / '));
- const o=rotateChoice(combos,0,i%4);
- qs.push({id:id(),type:'multi-blank',targetConceptIds:cs.map(x=>x.id),chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
-  text:`次の（1）～（4）の説明に対応する用語の組合せとして、もっとも適切なものを選べ。\n\n${cs.map((x,j)=>`（${j+1}）${x.definition}`).join('\n')}`,
-  options:o.options,correct:o.correct,
-  brief:'4つの近接概念を同時に区別する組合せ問題。1語だけ分かっても正解を確定しにくい。',
-  detail:`正しい対応は ${correct.map((t,j)=>`（${j+1}）${t}`).join('、')}。`,
-  reasons:o.options.map(x=>x===combos[0]?'4つすべての対応が正しい。':`一部の対応が入れ替わっている。正しくは ${correct.map((t,j)=>`（${j+1}）${t}`).join('、')}。`)});
+// v15 mix: public-past-paper style rather than definition-only drills.
+// 15% multi-blank combinations, 20% same-topic statement judgement,
+// 50% scenario/method selection, 15% calculation/test-design/application.
+const relatedFamilies={
+ '品質基礎':['品質の定義','品質マネジメント'],'欠陥用語':['V&V','テスト設計'],
+ 'セキュリティ管理':['QMS','リスク管理','セキュリティ'],'教育':['品質マネジメント','プロジェクト管理'],
+ '意思決定':['リスク管理','品質マネジメント'],'調達':['品質マネジメント','検査監査'],
+ '品質計画':['品質マネジメント','測定'],'プロジェクト管理':['品質マネジメント','改善サイクル'],
+ 'モデル化':['形式手法','設計実装'],'ライフサイクル':['開発モデル','保守']
+};
+function relatedPool(q){
+ const fam=rows.filter(x=>x.id!==q.id&&x.family===q.family);
+ const rel=(relatedFamilies[q.family]||[]).flatMap(f=>rows.filter(x=>x.family===f&&x.id!==q.id));
+ const chap=rows.filter(x=>x.id!==q.id&&x.chapter===q.chapter&&!fam.some(y=>y.id===x.id)&&!rel.some(y=>y.id===x.id));
+ return [...fam,...rel,...chap].filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i);
 }
-// FORMAT B: 170 single-topic statement questions, modeled on public CI/GQM/quality-plan/configuration questions.
-for(let i=0;i<rows.length;i++){
- const q=rows[i];
+function chooseFour(q,seed){
+ const out=[q],pool=relatedPool(q);
+ for(let k=0;k<pool.length&&out.length<4;k++){const x=pool[(seed+k)%pool.length];if(!out.some(y=>y.id===x.id))out.push(x);}
+ for(let k=0;out.length<4&&k<rows.length;k++){const x=rows[(seed*7+k*13)%rows.length];if(!out.some(y=>y.id===x.id))out.push(x);}
+ return out;
+}
+function needFrom(def){
+ let x=String(def).replace(/。$/,'');
+ x=x.replace(/ための(技法|方法|活動|モデル|枠組み)$/,'こと');
+ x=x.replace(/する(技法|方法|活動|モデル|枠組み)$/,'したい');
+ x=x.replace(/を表す(代表的な)?(指標|尺度)$/,'を把握したい');
+ x=x.replace(/である$/,'を必要としている');
+ return x;
+}
+function scenarioLead(q,variant){
+ const need=needFrom(q.definition);
+ const lead={
+  '品質の概念':'品質責任者','品質マネジメント':'品質管理チーム','品質技術':'品質技術チーム',
+  '専門品質':'専門品質チーム','新領域':'開発・運用チーム'
+ }[q.chapter]||'プロジェクトチーム';
+ const tails=[
+  `${lead}は、${need}。この目的に最も直接適する考え方・技法はどれか。`,
+  `ある案件で「${need}」ことが課題になった。最も適切な対応・技法はどれか。`,
+  `レビューの結果、${need}ことが必要と判断された。採用するものとして最も適切なのはどれか。`
+ ];
+ return tails[variant%tails.length];
+}
+
+// A. 60 multi-blank combination questions.
+// Public past exams include multi-blank combinations; each answer option below changes every slot,
+// so duplicated wording cannot collapse the question into an effective two-choice item.
+const multiCandidates=rows.filter(q=>relatedPool(q).length>=3).sort((a,b)=>(b.level==='L3')-(a.level==='L3')||(b.level==='L2')-(a.level==='L2')||a.id.localeCompare(b.id)).slice(0,60);
+for(let i=0;i<multiCandidates.length;i++){
+ const q=multiCandidates[i],cs=chooseFour(q,i+3),terms=cs.map(x=>x.term);
+ const perms=[[0,1,2,3],[1,0,3,2],[2,3,0,1],[3,2,1,0]];
+ const combos=perms.map(p=>p.map((n,j)=>`(${j+1})${terms[n]}`).join(' / '));
+ const shift=i%4,o=rotateChoice(combos,0,shift);
+ qs.push({id:id(),type:'multi-blank',targetConceptIds:cs.map(x=>x.id),chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
+  text:`次の（1）～（4）の状況・目的に対応する用語の組合せとして、もっとも適切なものを選べ。\n\n${cs.map((x,j)=>`（${j+1}）${scenarioLead(x,j).replace(/。この目的.+$/,'')}`).join('\n')}`,
+  options:o.options,correct:o.correct,
+  brief:'4つの近接概念を同時に区別する。各選択肢は4枠すべての対応が異なる。',
+  detail:`正しい対応は ${terms.map((t,j)=>`（${j+1}）${t}`).join('、')}。`,
+  reasons:o.options.map(x=>x===combos[0]?'4つすべての対応が正しい。':`少なくとも2つ以上の対応が入れ替わっている。正しくは ${terms.map((t,j)=>`（${j+1}）${t}`).join('、')}。`)});
+}
+
+// B. 80 same-topic statement questions.
+// This follows public GQM / quality-plan / configuration-management questions:
+// all four choices discuss the same topic; only scope, purpose or responsibility makes one correct.
+const statementCandidates=[...rows].sort((a,b)=>(customStatements[b.id]?1:0)-(customStatements[a.id]?1:0)||(b.level==='L3')-(a.level==='L3')||(b.level==='L2')-(a.level==='L2')||a.id.localeCompare(b.id)).slice(0,80);
+for(let i=0;i<statementCandidates.length;i++){
+ const q=statementCandidates[i];
  let statements=customStatements[q.id];
  if(!statements){
-  const pool=sameFamilyPeers(q,169-i),ps=[];
-  for(const p of pool){if(ps.length===3)break;if(!ps.some(x=>x.id===p.id))ps.push(p);}
-  for(let k=0;ps.length<3;k++){const p=rows[(i+k*17+31)%rows.length];if(p.id!==q.id&&!ps.some(x=>x.id===p.id))ps.push(p);}
+  const ps=relatedPool(q).slice(0,3);
+  while(ps.length<3)ps.push(rows[(i+ps.length*19)%rows.length]);
   statements=[
    `${q.term}は、${q.definition}`,
    `${q.term}は、${ps[0].definition}`,
-   `${q.term}は、${ps[1].definition}`,
-   `${q.term}は、${ps[2].definition}`
+   `${q.term}の主な対象は、${ps[1].definition}`,
+   `${q.term}を適用する主目的は、${ps[2].definition}`
   ];
  }
  const o=rotateChoice(statements,0,(i*3+1)%4);
  qs.push({id:id(),type:'same-topic-statement',targetConceptIds:[q.id],chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
   text:`「${q.term}」に関する説明として、もっとも適切なものを選べ。`,
   options:o.options,correct:o.correct,
-  brief:`${q.term}について、同じ分野の説明を比較し、対象・目的・適用範囲の違いを判断する。`,
-  detail:`適切なのは「${q.definition}」という説明。`,
-  reasons:o.options.map(x=>x===statements[0]?`${q.term}の対象・目的を正しく説明している。`:`同じ分野の別概念、または${q.term}の適用範囲を誤った説明である。`)});
+  brief:`${q.term}について、同じ分野の記述から対象・目的・適用範囲を区別する。`,
+  detail:`適切なのは「${q.definition}」という内容。`,
+  reasons:o.options.map(x=>x===statements[0]?`${q.term}の対象・目的を正しく説明している。`:`同じ分野の別概念の対象・目的を混同している。問題文の主語である${q.term}には適合しない。`)});
+}
+
+// C. 200 scenario / method-selection questions.
+// These mirror the public multivariate-analysis style: understand the objective first,
+// then select among close methods from the same family/chapter.
+const scenarioTargets=rows.concat(rows.filter(x=>x.level==='L3').slice(0,23),rows.filter(x=>x.level==='L2').slice(0,7));
+for(let i=0;i<scenarioTargets.length;i++){
+ const q=scenarioTargets[i],cs=chooseFour(q,i+11),raw=cs.map(x=>x.term),shift=(i*2+1)%4,o=rotateChoice(raw,0,shift);
+ qs.push({id:id(),type:'scenario-selection',targetConceptIds:[q.id],chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
+  text:scenarioLead(q,i),
+  options:o.options,correct:o.correct,
+  brief:`目的を先に読み、${q.term}と近接概念の適用範囲を比較する。`,
+  detail:`設問の目的は「${q.definition}」に対応するため、${q.term}が最も直接的。`,
+  reasons:o.options.map(t=>t===q.term?`${q.term}は設問の目的・対象に直接一致する。`:`${t}も同じ分野に関連するが、設問が求める目的・対象とは異なる。`)});
 }
 const add=x=>qs.push({...x,id:id(),type:'applied'});
 const four=(fn)=>{for(let v=0;v<4;v++)add(fn(v));};
@@ -193,8 +250,8 @@ function distribute(items,cap){
 }
 distribute(qs.slice(0,170),17);distribute(qs.slice(170,340),17);distribute(qs.slice(340),6);
 for(const f of formSets){delete f.chapter;delete f.level;if(f.ids.length!==40)throw new Error('form length');}
-return {version:'14.0',published:true,total:400,forms:10,questions:qs,formSets,
- calibration:{label:'公式公開問題の形式・難度アンカー準拠',note:'日科技連の初級サンプル問題と第18・20・22・26回の公開解説に見られる形式（同一テーマの記述判定、複数穴の組合せ、近接技法の選択、計算・テスト設計）をアンカーにした独自問題。公式問題の転載ではなく、本番得点の保証ではない。',
+return {version:'15.0',published:true,total:400,forms:10,questions:qs,formSets,
+ calibration:{label:'公式公開過去問の出題形式・難度アンカー準拠',note:'日科技連の初級サンプル問題と第18・20・22・26回の公開解説に見られる形式（同一テーマの記述判定、複数穴の組合せ、近接技法の選択、計算・テスト設計）をアンカーにした独自問題。公式問題の転載ではなく、本番得点の保証ではない。',
   officialExam:{questions:40,minutes:60,levels:['L1','L2','L3'],passLine:'70%程度'},
   anchors:['https://www.juse.jp/jcsqe/content/jcsqe_beginner_sample.pdf','https://www.juse.jp/jcsqe/study/past/18_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/20_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/22_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/26_syokyu_discription.pdf']}};
 });
