@@ -1,4 +1,4 @@
-/* Additive v12.2 launcher. ?legacy=1 leaves all previous screens untouched. */
+/* Additive v15.1 launcher. ?legacy=1 leaves all previous screens untouched. */
 (() => {
 'use strict';
 if (new URLSearchParams(location.search).get('legacy') === '1') return;
@@ -24,10 +24,10 @@ function planHref(date, round) {
 }
 function enhanceHome() {
   const main = app.querySelector('main#main');
-  if (!main || main.dataset.appliedLauncher === '12') return;
+  if (!main || main.dataset.appliedLauncher === '151') return;
   const eyebrow = main.querySelector('.hero .eyebrow');
   if (!eyebrow || !eyebrow.textContent.includes('SMALL STEPS, CLEAR PROGRESS')) return;
-  main.dataset.appliedLauncher = '12';
+  main.dataset.appliedLauncher = '151';
   const previous = document.createElement('details');
   previous.className = 'panel';
   const summary = document.createElement('summary');
@@ -38,8 +38,8 @@ function enhanceHome() {
   previous.appendChild(old);
   const launch = document.createElement('section');
   launch.className = 'panel';
-  launch.setAttribute('aria-label', '新しい事例演習');
-  launch.innerHTML = '<span class="tag">v12.2 · 内容再監査済み</span><h1 style="margin-top:14px">消去法から、<br>根拠で選ぶ練習へ。</h1><p>64問・32テーマ。似た概念・近い選択肢を比較し、問題文の条件を理解しないと選びにくい構成へ更新しました。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">事例で考える演習を開く →</a></p><p class="muted">ワンタップ回答。詳細解説では「判断基準→問題への適用→誤答の決定的な誤り→正解との比較」まで確認できます。v11までの履歴は残します。公式問題や全範囲の網羅を保証するものではありません。</p>';
+  launch.setAttribute('aria-label', 'JCSQE演習道場');
+  launch.innerHTML = '<span class="tag">v15.1 · JCSQE演習道場</span><h1 style="margin-top:14px">問題数を選ばず、<br>次々と解く。</h1><p>公式公開過去問の出題形式を参考にした400問から、未回答・弱点・復習時期を自動で優先。1問ごとに解説を確認し、そのまま次へ進みます。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">演習道場を開く →</a></p><p class="muted">過去問道場を参考に、出題範囲の指定・続きから再開・未回答/弱点の復習・網羅度と学習履歴を重視した作りです。通常演習に問題数選択はありません。</p>';
   const benchmark = document.createElement('section');
   benchmark.className='panel';
   benchmark.setAttribute('aria-label','本番校正10回');
