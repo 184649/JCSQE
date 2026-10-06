@@ -69,7 +69,7 @@ function home() {
   <div class="metrics">${metric(st.newCount,'このブラウザで未表示')}${metric(st.dueTopics,'復習期日のテーマ')}${metric(st.answered+'/'+st.total,'回答した問題')}</div>
   <section class="panel"><h2>いま解く</h2><div class="grid">${[3,5,10].map(n=>`<button class="start-card ${n===5?'primary':''}" data-act="start" data-count="${n}" data-mode="smart"><strong>${n}問</strong><span>${n===3?'短い空き時間':n===5?'判断を積み重ねる':'じっくり取り組む'}</span></button>`).join('')}</div>
   <div class="row" style="margin-top:12px">${btn('日を空けた復習','start','data-count="5" data-mode="due"')}${btn('未表示だけ10問','start','data-count="10" data-mode="new"')}</div>
-  <p class="muted">同テーマの連続を抑え、未表示と復習期日の問題を優先します。選択肢は同じ論点内の近い考え方を中心に構成しています。本文タップ＝確信あり、右の△＝迷いありです。</p></section>
+  <p class="muted">同テーマの連続を抑え、未表示と復習期日の問題を優先します。選択肢は同じ論点内の近い考え方を中心に構成しています。選択肢をタップして回答します。曖昧さは、同じ概念を別問題で複数回解いた正誤の安定性で確認します。</p></section>
   <section class="panel"><h2>絞り込んで考える</h2><div class="filter-grid"><label>分野<select id="chapter"><option value="all">すべて</option>${chapters}</select></label><label>テーマ<select id="topic"><option value="all">すべて</option>${topics.map(([id,label])=>`<option value="${id}" ${filters.topic===id?'selected':''}>${esc(label)}</option>`).join('')}</select></label></div>
   <div class="row">${btn('この条件で10問','start','data-count="10" data-mode="smart"',true)}${btn('弱点の別事例','start','data-count="5" data-mode="wrong"')}${btn('保存した問題','start','data-count="10" data-mode="bookmarks"')}</div><p class="muted">問題が少ない条件では、重複で水増しせず実際の問数を表示します。同日中の再確認は、遅延確認と分けて記録します。</p></section>
   <section class="panel"><h2>40問・60分の総合演習</h2><p>終了するまで正解・解説は出しません。回答を後から変更できます。</p><div class="grid two">${btn('未表示40問で開始','start','data-count="40" data-mode="new" data-kind="mock"',true)}${btn('復習を含む40問','start','data-count="40" data-mode="mixed" data-kind="mock"')}</div><p class="muted">初見40問は未表示が40問以上あるときだけ開始します。64問を使い回して「独立した模試10回分」とは数えません。外で既に見た問題かは判別できません。</p></section>
@@ -78,7 +78,7 @@ function home() {
 function feedback(q, selected, order, confidence) {
   const letter=letters[order.indexOf(q.correct)];
   const selectedLabel=Number.isInteger(selected)?`${letters[order.indexOf(selected)]}. ${q.options[selected]}`:'分からない／未回答';
-  const status=selected===q.correct?(confidence==='guess'?'正解・迷いあり':'正解'):'ここを確認';
+  const status=selected===q.correct?'正解':'ここを確認';
   const guide=G[q.topicKey]||{};
   const selectedWrong=Number.isInteger(selected)&&selected!==q.correct;
   const calc=q.calculation?`<div class="explain-step calculation"><h3>計算で確かめる</h3><p><code>${esc(q.calculation.expression)}</code> ＝ <b>${esc(q.calculation.value)}${esc(q.calculation.unit||'')}</b></p><p>この値だけ暗記せず、どの数を分子・分母に置いたか、何回で平均したか、単位がそろっているかを確認します。</p></div>`:'';
@@ -92,7 +92,7 @@ function feedback(q, selected, order, confidence) {
     confidence==='unknown'||!Number.isInteger(selected)?`<div class="explain-step selected-choice-analysis"><h3>迷ったときの判断基準</h3><p>${esc(guide.rule||q.distinction||q.brief)}</p></div>`:'';
   const steps=Array.isArray(guide.steps)&&guide.steps.length?`<ol class="decision-steps">${guide.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:'';
   return `<section class="panel feedback ${selected===q.correct?'':'incorrect'}" tabindex="-1" aria-live="polite"><h2>${status}</h2><p class="result-answer">正解：<b>${letter}. ${esc(q.options[q.correct])}</b><br>あなたの回答：${esc(selectedLabel)}</p><div class="brief"><b>まず覚えるポイント</b><p>${esc(q.brief)}</p></div>
-  <details class="deep"><summary>${selected===q.correct&&confidence==='sure'?'詳細な解説を見る':'詳細な解説を見る（推奨）'}</summary><div class="body">
+  <details class="deep"><summary>${selected===q.correct?'詳細な解説を見る':'詳細な解説を見る（推奨）'}</summary><div class="body">
   ${selectedAnalysis}
   <div class="explain-step judgement-rule"><h3>1. まず使う判定基準</h3><p>${esc(guide.rule||q.distinction||q.brief)}</p>${steps}</div>
   <div class="explain-step"><h3>2. この問題文へ当てはめる</h3><p>${esc(q.detail)}</p></div>
@@ -109,17 +109,17 @@ function quiz() {
   <progress max="${v.total}" value="${v.index+1}" aria-label="演習の進捗"></progress>
   ${s.warning&&v.index===0?`<div class="notice">${esc(s.warning)}</div>`:''}
   <section class="panel"><div class="row" style="justify-content:flex-end">${btn(bookmarked?'★ 保存済み':'☆ あとで復習','bookmark',`aria-pressed="${bookmarked}"`)}</div>
-  <h1 class="question">${esc(v.question.text)}</h1><p class="muted">選択肢の本文：確信あり ／ 右の△：迷いあり。似た選択肢を、問題文の条件と根拠で切り分けてください。</p>
-  <div class="options" role="group" aria-label="選択肢">${v.options.map(o=>`<div class="option-row"><button class="option ${o.selected?'chosen':''} ${v.revealed&&o.correct?'right':''} ${v.revealed&&o.selected&&!o.correct?'wrong':''}" data-act="answer" data-choice="${o.original}" data-confidence="sure" ${v.revealed?'disabled':''} aria-pressed="${o.selected}"><span class="letter">${letters[o.display]}</span><span>${esc(o.text)}</span></button><button class="guess" data-act="answer" data-choice="${o.original}" data-confidence="guess" ${v.revealed?'disabled':''} aria-label="選択肢${letters[o.display]}を迷いありで回答">△<small>迷い</small></button></div>`).join('')}</div>
-  ${v.revealed?'':btn('分からない','unknown')} ${s.kind==='mock'&&Object.hasOwn(s.answers,v.question.id)?`<span class="tag">回答保存済み${v.confidence==='guess'?'・△迷い':''}</span>`:''}
+  <h1 class="question">${esc(v.question.text)}</h1><p class="muted">選択肢をタップして回答してください。曖昧さは自己申告ではなく、別問題で同じ概念を繰り返し確認した結果から判断します。</p>
+  <div class="options" role="group" aria-label="選択肢">${v.options.map(o=>`<div class="option-row single"><button class="option ${o.selected?'chosen':''} ${v.revealed&&o.correct?'right':''} ${v.revealed&&o.selected&&!o.correct?'wrong':''}" data-act="answer" data-choice="${o.original}" ${v.revealed?'disabled':''} aria-pressed="${o.selected}"><span class="letter">${letters[o.display]}</span><span>${esc(o.text)}</span></button></div>`).join('')}</div>
+  ${v.revealed?'':btn('分からない','unknown')} ${s.kind==='mock'&&Object.hasOwn(s.answers,v.question.id)?`<span class="tag">回答保存済み</span>`:''}
   </section>${v.revealed?feedback(v.feedback,v.selected,s.orders[v.question.id],v.confidence):''}
-  ${s.kind==='practice'?v.revealed?`<button class="primary full" data-act="next">${v.index+1===v.total?'結果を見る':'次の問題へ'}</button>`:'':`<div class="row">${btn('前へ','previous',v.index?'':'disabled')}${btn(v.index+1===v.total?'終了前に確認':'次へ','next','',true)}</div><div class="jump">${s.questionIds.map((id,i)=>`<button class="${s.index===i?'current':''} ${Object.hasOwn(s.answers,id)?'answered':''}" data-act="jump" data-index="${i}" aria-label="問${i+1}${Object.hasOwn(s.answers,id)?' 回答済み':' 未回答'}">${i+1}${s.confidence[id]==='guess'?'△':''}</button>`).join('')}</div>${btn('終了して採点','finish-early')}`}`;
+  ${s.kind==='practice'?v.revealed?`<button class="primary full" data-act="next">${v.index+1===v.total?'結果を見る':'次の問題へ'}</button>`:'':`<div class="row">${btn('前へ','previous',v.index?'':'disabled')}${btn(v.index+1===v.total?'終了前に確認':'次へ','next','',true)}</div><div class="jump">${s.questionIds.map((id,i)=>`<button class="${s.index===i?'current':''} ${Object.hasOwn(s.answers,id)?'answered':''}" data-act="jump" data-index="${i}" aria-label="問${i+1}${Object.hasOwn(s.answers,id)?' 回答済み':' 未回答'}">${i+1}</button>`).join('')}</div>${btn('終了して採点','finish-early')}`}`;
 }
 function result() {
   const r=currentResult||E.profile(p()).sessions.at(-1);
   if (!r) return '<div class="empty">終了した演習はまだありません。</div>';
-  return `<section class="hero"><div class="eyebrow">RESULT · 次に使える理解へ</div><div class="result-title">${r.correct}<small> / ${r.total}</small></div>${r.plannedDate?`<p><span class="tag">${planLabel(r.plannedDate,r.plannedRound)}</span>として実施</p>`:''}<p>${r.accuracy}% · ${r.kind==='mock'?'経過時間':'回答時間の累計'} ${Math.floor(r.elapsedSec/60)}分${r.elapsedSec%60}秒</p><p class="muted">初回表示 ${r.details.filter(d=>d.firstExposure).length}問／再表示・再回答 ${r.details.filter(d=>d.observed!==false&&!d.firstExposure).length}問／未表示・未回答 ${r.details.filter(d=>d.observed===false).length}問／迷い・不明 ${r.details.filter(d=>d.observed!==false&&d.confidence!=='sure').length}問。正答率だけで定着・合格とは判定しません。</p></section><div class="row">${btn('結果をコピー','copy','',true)}${btn('JSON保存','export')}${btn('演習を選ぶ','home')}</div>
-  ${r.details.map((d,i)=>`<details class="result-item" data-review-id="${esc(d.questionId)}"><summary><span class="history-summary"><span>${d.correct?'○':'×'} 問${i+1} ${esc(r.questions[d.questionId].topic)}</span><small>${d.confidence==='guess'?'△':d.confidence==='unknown'?'?':''}</small></span></summary><div class="body"><p class="question" style="font-size:15px">${esc(r.questions[d.questionId].text)}</p>${feedback(r.questions[d.questionId],d.selected,d.order,d.confidence)}</div></details>`).join('')}`;
+  return `<section class="hero"><div class="eyebrow">RESULT · 次に使える理解へ</div><div class="result-title">${r.correct}<small> / ${r.total}</small></div>${r.plannedDate?`<p><span class="tag">${planLabel(r.plannedDate,r.plannedRound)}</span>として実施</p>`:''}<p>${r.accuracy}% · ${r.kind==='mock'?'経過時間':'回答時間の累計'} ${Math.floor(r.elapsedSec/60)}分${r.elapsedSec%60}秒</p><p class="muted">初回表示 ${r.details.filter(d=>d.firstExposure).length}問／再表示・再回答 ${r.details.filter(d=>d.observed!==false&&!d.firstExposure).length}問／未表示・未回答 ${r.details.filter(d=>d.observed===false).length}問／不明 ${r.details.filter(d=>d.observed!==false&&d.confidence==='unknown').length}問。正答率だけで定着・合格とは判定しません。</p></section><div class="row">${btn('結果をコピー','copy','',true)}${btn('JSON保存','export')}${btn('演習を選ぶ','home')}</div>
+  ${r.details.map((d,i)=>`<details class="result-item" data-review-id="${esc(d.questionId)}"><summary><span class="history-summary"><span>${d.correct?'○':'×'} 問${i+1} ${esc(r.questions[d.questionId].topic)}</span><small>${d.confidence==='unknown'?'?':''}</small></span></summary><div class="body"><p class="question" style="font-size:15px">${esc(r.questions[d.questionId].text)}</p>${feedback(r.questions[d.questionId],d.selected,d.order,d.confidence)}</div></details>`).join('')}`;
 }
 function history() {
   const a=E.profile(p()), st=E.stats(B,p()), topics=E.topicStatus(B,p());
@@ -166,7 +166,7 @@ async function handle(el) {
   if (act==='pause'){E.pause(p());save();navigate('home');return;}
   if (act==='answer'||act==='unknown') {
     if(expire()){render();return;}
-    if (!E.answer(p(),act==='unknown'?null:Number(el.dataset.choice),el.dataset.confidence||'unknown')) return;
+    if (!E.answer(p(),act==='unknown'?null:Number(el.dataset.choice),act==='unknown'?'unknown':'sure')) return;
     save();render();const f=$('.feedback');f?.focus({preventScroll:true});f?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return;
   }
   if (act==='next'||act==='previous'||act==='jump') {
