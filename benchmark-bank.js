@@ -67,14 +67,14 @@ four(v=>{const aa=[1.5,2,0.8,3][v],bb=[2,1,4,5][v],x=[4,5,10,3][v],y=aa*x+bb;ret
 four(v=>{const kx=[12,20,8,15][v],dx=[36,50,24,60][v],ky=[8,10,6,12][v],dy=[32,30,24,60][v],rx=dx/kx,ry=dy/ky;return{chapter:'品質技術',family:'測定',level:'L2',syllabus:'3.1.2 / 3.1.3',
  text:`同じ検出基準でXは${kx}KLOCから${dx}件、Yは${ky}KLOCから${dy}件の欠陥が見つかった。欠陥密度の比較として正しいものはどれか。`,
  options:[`X=${rx}件/KLOC、Y=${ry}件/KLOC`,`X=${dx}、Y=${dy}件/KLOC`,`X=${kx/dx}、Y=${ky/dy}件/KLOC`,'総欠陥数だけで密度を比較する'],correct:0,
- brief:'欠陥密度は欠陥数÷規模。',detail:`X=${rx}、Y=${ry}件/KLOC。`,reasons:['正しい。','総数を密度にしている。','逆数。','規模差を無視。']};});
+ brief:'欠陥密度は欠陥数÷規模。',detail:`X=${rx}、Y=${ry}件/KLOC。`,reasons:['正しい。','総数を密度にしている。','分子と分母が逆になっている。','規模差を無視。']};});
 four(v=>{const u=[[90,150],[80,120],[100,140],[75,165]][v],m=(u[0]+u[1])/2;return{chapter:'品質の概念',family:'信頼性',level:'L2',syllabus:'1.3',
  text:`装置が${u[0]}時間稼働して故障し、修理後さらに${u[1]}時間稼働して故障した。MTBFを総稼働時間÷故障回数で求めるといくつか。`,
  options:[`${m}時間`,`${u[0]+u[1]}時間`,`${m+10}時間`,'10時間'],correct:0,brief:'MTBF=総稼働時間÷故障回数。',detail:`${u[0]+u[1]}÷2=${m}時間。`,
  reasons:['正しい。','故障回数で割っていない。','修理時間を混ぜる。','修理時間と混同。']};});
 four(v=>{const tp=[30,48,72,45][v],fp=[10,12,18,15][v],fn=[20,16,8,5][v],p=Math.round(tp/(tp+fp)*1000)/10,r=Math.round(tp/(tp+fn)*1000)/10;return{chapter:'新領域',family:'AI品質',level:'L1',syllabus:'5.1.1',
  text:`分類モデルでTP=${tp}, FP=${fp}, FN=${fn}。PrecisionとRecallの正しい組合せはどれか。`,options:[`Precision ${p}%、Recall ${r}%`,`Precision ${r}%、Recall ${p}%`,`Precision ${Math.round(tp/(tp+fp+fn)*1000)/10}%、Recall 同じ`,`Precision 100%、Recall ${r}%`],correct:0,
- brief:'Precision=TP/(TP+FP)、Recall=TP/(TP+FN)。',detail:`Precision=${p}%、Recall=${r}%。`,reasons:['正しい。','逆。','分母が違う。','FPがある。']};});
+ brief:'Precision=TP/(TP+FP)、Recall=TP/(TP+FN)。',detail:`Precision=${p}%、Recall=${r}%。`,reasons:['正しい。','二つの対応を逆にしている。','分母が違う。','FPがある。']};});
 four(v=>{const top=['誤投薬','二重請求','警報喪失','データ消失'][v];return{chapter:'品質技術',family:'リスク分析',level:'L3',syllabus:'3.7.3',
  text:`「${top}」を頂上事象に置き、AND/ORで原因の組合せを分解する技法はどれか。`,options:['FTA','FMEA','HAZOP','リスクマトリクス'],correct:0,
  brief:'頂上事象から原因へ遡るのはFTA。',detail:'FMEAは故障モード起点で影響へ進む。',reasons:['正しい。','分析方向が逆。','ガイドワードで逸脱を調べる。','優先度付け。']};});
@@ -88,7 +88,7 @@ four(v=>{const p=[
  ['発見済みバグを修正','将来故障しそうな内部構造を整理','是正保守','予防保守'],
  ['外部API廃止へ対応','要求を満たす画面を利用者要望で改善','適応保守','完全化保守']][v];return{chapter:'品質技術',family:'保守',level:'L2',syllabus:'3.10.2',
  text:`変更A「${p[0]}」、変更B「${p[1]}」。分類として適切なのはどれか。`,options:[`A=${p[2]}、B=${p[3]}`,`A=${p[3]}、B=${p[2]}`,'AもBも是正保守','AもBも適応保守'],correct:0,
- brief:'保守分類は変更理由で決める。',detail:`A=${p[2]}、B=${p[3]}。`,reasons:['正しい。','逆。','両方が欠陥修正ではない。','両方が環境変化対応ではない。']};});
+ brief:'保守分類は変更理由で決める。',detail:`A=${p[2]}、B=${p[3]}。`,reasons:['正しい。','二つの対応を逆にしている。','両方が欠陥修正ではない。','両方が環境変化対応ではない。']};});
 four(v=>{const g=['必要最小限だけ収集する設計','導入前に影響と残余リスクを評価','匿名化・暗号化技術を適用','初期設定を非公開側にする設計'],ans=[0,1,2,0],o=['Privacy by Design','PIA','PET','ISMSリスクアセスメント'];return{chapter:'専門品質',family:'プライバシー',level:'L2',syllabus:'4.4.2',
  text:`「${g[v]}」にもっとも直接対応するものはどれか。`,options:o,correct:ans[v],brief:'設計原則・影響評価・保護技術を区別する。',detail:`${o[ans[v]]}に対応する。`,reasons:o.map((x,i)=>i===ans[v]?'直接一致。':'関連するが活動種類が違う。')};});
 four(v=>{const d=['有限状態を全探索して禁止状態への到達を確認','数理的な言語で仕様を記述','公理と推論規則で性質を証明','実行モデルを動かして挙動を観察'],o=['モデル検査','形式仕様記述','定理証明','シミュレーション'];return{chapter:'品質技術',family:'形式手法',level:'L1',syllabus:'3.3.1 / 3.3.2',
