@@ -77,23 +77,52 @@ function rotateChoice(options,correct,shift){
 // v15 mix: public-past-paper style rather than definition-only drills.
 // 15% multi-blank combinations, 20% same-topic statement judgement,
 // 50% scenario/method selection, 15% calculation/test-design/application.
-const relatedFamilies={
- '品質基礎':['品質の定義','品質マネジメント'],'欠陥用語':['V&V','テスト設計'],
- 'セキュリティ管理':['QMS','リスク管理','セキュリティ'],'教育':['品質マネジメント','プロジェクト管理'],
- '意思決定':['リスク管理','品質マネジメント'],'調達':['品質マネジメント','検査監査'],
- '品質計画':['品質マネジメント','測定'],'プロジェクト管理':['品質マネジメント','改善サイクル'],
- 'モデル化':['形式手法','設計実装'],'ライフサイクル':['開発モデル','保守']
-};
+const conceptGroups=[
+ ['C001','C002','C003','C007','C008','C009','C010','C011'],
+ ['C004','C005','C006','C092','C093'],
+ ['C012','C013','C014','C015','C016','C017','C018','C021','C022','C043','C139'],
+ ['C019','C020','C081','C082','C146','C147','C148','C149','C150','C151'],
+ ['C023','C105','C106','C107','C108','C155','C156'],
+ ['C024','C025','C026','C027','C028','C029','C134'],
+ ['C030','C031','C032','C033','C034','C135','C136'],
+ ['C035','C036','C037','C038','C039','C044','C137','C138'],
+ ['C040','C041','C042','C109','C157'],
+ ['C045','C046','C047','C048','C101','C102','C103','C104'],
+ ['C049','C050','C051','C052','C053','C054'],
+ ['C055','C056','C057','C058','C059','C060'],
+ ['C061','C062','C090','C091','C152','C153','C154'],
+ ['C063','C064','C065','C066'],
+ ['C067','C068','C069','C070','C071','C072','C073','C074','C075','C076','C077','C078','C079'],
+ ['C080','C131','C132','C133','C140','C145'],
+ ['C083','C084','C085','C086','C087','C088','C089'],
+ ['C094','C095','C096','C097'],
+ ['C098','C099','C100','C060'],
+ ['C109','C110','C157','C158','C041'],
+ ['C111','C112','C113','C114','C115','C116','C159','C160','C161','C162'],
+ ['C117','C118','C163','C164','C124','C125','C126'],
+ ['C119','C120','C121','C122','C123','C165','C166'],
+ ['C124','C125','C126','C127','C128','C167','C168'],
+ ['C129','C130','C169','C138'],
+ ['C141','C142','C143','C144','C145','C170','C127'],
+ ['C131','C132','C133','C019','C020'],
+ ['C138','C139','C014','C043','C044']
+];
+const byId=new Map(rows.map(x=>[x.id,x]));
+function groupRows(q){
+ const ids=(conceptGroups.find(g=>g.includes(q.id))||[]);
+ const xs=ids.map(id=>byId.get(id)).filter(Boolean);
+ if(xs.length>=4)return xs;
+ const fam=rows.filter(x=>x.family===q.family);
+ if(fam.length>=4)return fam;
+ return rows.filter(x=>x.chapter===q.chapter);
+}
 function relatedPool(q){
- const fam=rows.filter(x=>x.id!==q.id&&x.family===q.family);
- const rel=(relatedFamilies[q.family]||[]).flatMap(f=>rows.filter(x=>x.family===f&&x.id!==q.id));
- const chap=rows.filter(x=>x.id!==q.id&&x.chapter===q.chapter&&!fam.some(y=>y.id===x.id)&&!rel.some(y=>y.id===x.id));
- return [...fam,...rel,...chap].filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i);
+ return groupRows(q).filter(x=>x.id!==q.id);
 }
 function chooseFour(q,seed){
  const out=[q],pool=relatedPool(q);
  for(let k=0;k<pool.length&&out.length<4;k++){const x=pool[(seed+k)%pool.length];if(!out.some(y=>y.id===x.id))out.push(x);}
- for(let k=0;out.length<4&&k<rows.length;k++){const x=rows[(seed*7+k*13)%rows.length];if(!out.some(y=>y.id===x.id))out.push(x);}
+ if(out.length<4)throw new Error('related concept group too small: '+q.id);
  return out;
 }
 function needFrom(def){
