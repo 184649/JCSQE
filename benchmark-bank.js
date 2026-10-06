@@ -129,26 +129,15 @@ function chooseFour(q,seed){
  if(out.length<4)throw new Error('related concept group too small: '+q.id);
  return out;
 }
-function needFrom(def){
- let x=String(def).replace(/。$/,'');
- x=x.replace(/ための(技法|方法|活動|モデル|枠組み)$/,'こと');
- x=x.replace(/する(技法|方法|活動|モデル|枠組み)$/,'したい');
- x=x.replace(/を表す(代表的な)?(指標|尺度)$/,'を把握したい');
- x=x.replace(/である$/,'を必要としている');
- return x;
-}
+function needFrom(def){return String(def).replace(/。$/,'');}
 function scenarioLead(q,variant){
  const need=needFrom(q.definition);
- const lead={
-  '品質の概念':'品質責任者','品質マネジメント':'品質管理チーム','品質技術':'品質技術チーム',
-  '専門品質':'専門品質チーム','新領域':'開発・運用チーム'
- }[q.chapter]||'プロジェクトチーム';
- const tails=[
-  `${lead}は、${need}。この目的に最も直接適する考え方・技法はどれか。`,
-  `ある案件で「${need}」ことが課題になった。最も適切な対応・技法はどれか。`,
-  `レビューの結果、${need}ことが必要と判断された。採用するものとして最も適切なのはどれか。`
+ const forms=[
+  `次の目的・状況に最も直接対応するものを選べ。\n「${need}」`,
+  `あるプロジェクトで次の活動が必要になった。最も適切なものを選べ。\n「${need}」`,
+  `次の説明に合う考え方・技法として、最も適切なものを選べ。\n「${need}」`
  ];
- return tails[variant%tails.length];
+ return forms[variant%forms.length];
 }
 
 // A. 60 multi-blank combination questions.
@@ -161,7 +150,7 @@ for(let i=0;i<multiCandidates.length;i++){
  const combos=perms.map(p=>p.map((n,j)=>`(${j+1})${terms[n]}`).join(' / '));
  const shift=i%4,o=rotateChoice(combos,0,shift);
  qs.push({id:id(),type:'multi-blank',targetConceptIds:cs.map(x=>x.id),chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
-  text:`次の（1）～（4）の状況・目的に対応する用語の組合せとして、もっとも適切なものを選べ。\n\n${cs.map((x,j)=>`（${j+1}）${scenarioLead(x,j).replace(/。この目的.+$/,'')}`).join('\n')}`,
+  text:`次の（1）～（4）の説明に対応する用語の組合せとして、もっとも適切なものを選べ。\n\n${cs.map((x,j)=>`（${j+1}）${needFrom(x.definition)}`).join('\n')}`,
   options:o.options,correct:o.correct,
   brief:'4つの近接概念を同時に区別する。各選択肢は4枠すべての対応が異なる。',
   detail:`正しい対応は ${terms.map((t,j)=>`（${j+1}）${t}`).join('、')}。`,
