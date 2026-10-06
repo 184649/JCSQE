@@ -5,6 +5,7 @@ const E=window.JCSQEBenchmark,B=E.bank(window.JCSQEBenchmarkBank),KEY='jcsqe-sho
 const root=document.getElementById('benchmark-app'),toastEl=document.getElementById('benchmark-toast'),letters='ABCD';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state,lastRaw=null,route='home',selectedResult=null,timer=null;
+const params=new URLSearchParams(location.search),plannedForm=Number(params.get('form'))||null,plannedDate=params.get('plan')||null;
 function toast(t){toastEl.textContent=t;toastEl.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>toastEl.classList.remove('show'),3500);}
 function safe(x){if(Array.isArray(x))return x.map(safe);if(x&&typeof x==='object')return Object.fromEntries(Object.entries(x).filter(([k])=>!['__proto__','constructor','prototype'].includes(k)).map(([k,v])=>[k,safe(v)]));return x;}
 function load(){const raw=localStorage.getItem(KEY);lastRaw=raw;if(raw){state=safe(JSON.parse(raw));}if(!state?.profiles){const id='p_'+Date.now();state={version:7,activeProfileId:id,profiles:{[id]:{name:'ユーザー1',history:[],sessions:[],bookmarks:[],exposures:{}}}};}if(!state.profiles[state.activeProfileId])state.activeProfileId=Object.keys(state.profiles)[0];E.state(p());}
@@ -20,6 +21,7 @@ function chapterRows(ch){const keys=['品質の概念','品質マネジメント
 function home(){
  const r=E.readiness(p()),a=E.accumulation(p()),first=E.firstSessions(p()),st=E.state(p()),next=r.nextForm;
  const last3ok=r.last3.length===3&&r.last3.every(x=>x>=32);
+ const planned=plannedForm&&plannedForm>=1&&plannedForm<=10?`<section class="panel planned-round"><span class="tag">学習計画</span><h2>本番校正 第${plannedForm}回</h2><p>${plannedDate?esc(plannedDate.replaceAll('-','/'))+' の予定回です。':''}40問・60分、途中解説なしで実施します。</p>${E.firstSessions(p()).some(x=>x.form===plannedForm)?'<p>この回の初回は実施済みです。再受験は復習扱いになります。</p>':plannedForm===E.nextForm(p())?`<p>${button('この回を開始','start',`data-form="${plannedForm}"`,'true')}</p>`:'<p class="muted">前の本番校正回を完了すると開始できます。</p>'}</section>`:'';
  const forms=Array.from({length:10},(_,i)=>i+1).map(n=>{
    const x=first.find(s=>s.form===n),isNext=n===next,locked=!x&&!isNext;
    return `<button class="form-card ${x?'done':''} ${isNext?'next':''}" data-act="${x?'open-result':isNext?'start':'locked'}" data-form="${n}" ${locked?'disabled':''}><strong>第${n}回　40問・60分</strong><small>${x?`初回 ${x.correct}/40（${x.accuracy}%）・${Math.floor(x.elapsedSec/60)}分${x.elapsedSec%60}秒`:isNext?'次に実施する本番校正回':'前の回を完了すると開放'}</small></button>`;
@@ -28,6 +30,7 @@ function home(){
  return `<main class="benchmark-shell">
  <section class="benchmark-hero"><span class="tag">v13 · 公式公開問題準拠</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
  ${activePanel}
+ ${planned}
  <section class="readiness-card ${r.stable80?'ready':''}"><div class="readiness-title">${esc(r.label)}</div><p>${esc(r.description)}</p>
  <div class="criteria">
   <div class="criterion"><span class="mark">${r.firstCompleted>=3?'✓':'○'}</span><span>本番校正の初回40問を3回以上完了</span></div>
