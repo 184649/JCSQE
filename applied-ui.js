@@ -43,8 +43,8 @@ function save() {
     const next=JSON.stringify(state); localStorage.setItem(KEY,next); lastRaw=next; return true;
   } catch { blocked=true; storageError='端末への保存に失敗しました。履歴はこの画面にあります。JSONを書き出して保管してください。'; return false; }
 }
-function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v12.2 · 内容再監査済み・理解重視 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
-function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('演習を選ぶ','home')}${btn('新演習の記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
+function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v15.1 · 連続演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
+function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('連続演習','home')}${btn('学習記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
 function metric(n,label) {return `<div class="metric"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function ratio(x) {return x.total?`${x.correct}/${x.total}`:'—';}
 function planLabel(date,round){if(!date)return'';const [,m,d]=date.split('-');return `${Number(m)}/${Number(d)} 第${round||'?'}回`;}
@@ -56,24 +56,15 @@ function finishCurrent(){
 }
 function home() {
   const st=E.stats(B,p()),s=E.active(p()),a=E.profile(p());
-  const plannedDone=plannedDate&&a.sessions.some(r=>r.kind==='mock'&&r.total===40&&r.plannedDate===plannedDate);
-  const plannedActive=plannedDate&&s?.kind==='mock'&&s.plannedDate===plannedDate;
-  const plannedMode=st.newCount>=40?'new':'mixed';
-  const plannedPanel=plannedDate?`<section class="panel planned-round"><span class="tag">学習計画</span><h2 style="margin-top:10px">${planLabel(plannedDate,plannedRound)}</h2>${plannedDone?'<p>この回は実施済みです。結果は「新演習の記録」から確認できます。</p>':plannedActive?'<p>この回は途中です。上の「同じ問題から再開」から続けてください。</p>':s?'<p>別の演習が途中です。先に再開または終了してから、この回を開始してください。</p>':`<p>予定日を過ぎていても、この回として記録して実施できます。実施日は別に保存します。</p><p>${btn('この回の40問・60分を開始','start',`data-count="40" data-mode="${plannedMode}" data-kind="mock" data-plan-date="${plannedDate}" data-plan-round="${plannedRound||''}"`,true)}</p><p class="muted">${plannedMode==='new'?'未表示問題を優先して40問出題します。':'未表示が40問未満のため、復習問題を含めて40問出題します。'}</p>`}</section>`:'';
-  const chapters=B.chapters.map(x=>`<option value="${esc(x)}" ${filters.chapter===x?'selected':''}>${esc(x)}</option>`).join('');
-  const topics=[...new Map(B.questions.filter(x=>filters.chapter==='all'||x.chapter===filters.chapter).map(q=>[q.topicKey,q.topic])).entries()];
-  return `<section class="hero"><div class="eyebrow">READ · REASON · DISTINGUISH</div><h1>消去法ではなく、<br><em>根拠で選ぶ。</em></h1><p class="muted">4択を同じ論点の中で比較し、問題文の条件を理解しないと切り分けにくい構成です。</p></section>
-  ${DEMO?'<div class="notice">このファイルは動作確認用です。公開サイトの履歴とは別に保存します。GitHubへは未反映です。</div>':''}
-  ${plannedPanel}
-  ${s?`<section class="panel"><h2>途中の演習</h2><p>${s.kind==='mock'?'40問・時間制限つき':'事例演習'}　${s.index+1}/${s.questionIds.length}問目</p>${s.kind==='mock'?'<p class="muted">中断中も60分の時計は進みます。</p>':''}<div class="row">${btn('同じ問題から再開','resume','',true)}${btn('ここまでで終了・採点','finish-early')}</div></section>`:''}
-  <div class="metrics">${metric(st.newCount,'このブラウザで未表示')}${metric(st.dueTopics,'復習期日のテーマ')}${metric(st.answered+'/'+st.total,'回答した問題')}</div>
-  <section class="panel"><h2>いま解く</h2><div class="grid">${[3,5,10].map(n=>`<button class="start-card ${n===5?'primary':''}" data-act="start" data-count="${n}" data-mode="smart"><strong>${n}問</strong><span>${n===3?'短い空き時間':n===5?'判断を積み重ねる':'じっくり取り組む'}</span></button>`).join('')}</div>
-  <div class="row" style="margin-top:12px">${btn('日を空けた復習','start','data-count="5" data-mode="due"')}${btn('未表示だけ10問','start','data-count="10" data-mode="new"')}</div>
-  <p class="muted">同テーマの連続を抑え、未表示と復習期日の問題を優先します。選択肢は同じ論点内の近い考え方を中心に構成しています。選択肢をタップして回答します。曖昧さは、同じ概念を別問題で複数回解いた正誤の安定性で確認します。</p></section>
-  <section class="panel"><h2>絞り込んで考える</h2><div class="filter-grid"><label>分野<select id="chapter"><option value="all">すべて</option>${chapters}</select></label><label>テーマ<select id="topic"><option value="all">すべて</option>${topics.map(([id,label])=>`<option value="${id}" ${filters.topic===id?'selected':''}>${esc(label)}</option>`).join('')}</select></label></div>
-  <div class="row">${btn('この条件で10問','start','data-count="10" data-mode="smart"',true)}${btn('弱点の別事例','start','data-count="5" data-mode="wrong"')}${btn('保存した問題','start','data-count="10" data-mode="bookmarks"')}</div><p class="muted">問題が少ない条件では、重複で水増しせず実際の問数を表示します。同日中の再確認は、遅延確認と分けて記録します。</p></section>
-  <section class="panel"><h2>40問・60分の総合演習</h2><p>終了するまで正解・解説は出しません。回答を後から変更できます。</p><div class="grid two">${btn('未表示40問で開始','start','data-count="40" data-mode="new" data-kind="mock"',true)}${btn('復習を含む40問','start','data-count="40" data-mode="mixed" data-kind="mock"')}</div><p class="muted">初見40問は未表示が40問以上あるときだけ開始します。64問を使い回して「独立した模試10回分」とは数えません。外で既に見た問題かは判別できません。</p></section>
-  <section class="panel"><h2>「正解」を分けて見る</h2><div class="metrics">${metric(ratio(st.first),'このブラウザで初回')}${metric(ratio(st.repeat),'再表示・再回答')}${metric(ratio(st.delayed),'別事例・2日以上後')}</div><p class="muted">64問・32テーマの理解重視版です。v11までの得点はv12の初回成績へ混ぜません。公式問題と同一難易度や合格を保証するものではありません。</p></section>`;
+  const practiceActive=s?.kind==='practice', legacyMock=s?.kind==='mock';
+  const answered=a.history.filter(h=>h.observed!==false).length;
+  return `<section class="hero"><div class="eyebrow">CONTINUOUS PRACTICE</div><h1>問題数を選ばず、<br><em>そのまま次へ。</em></h1><p class="muted">未表示・弱点・復習時期を自動で優先します。1問回答して解説を確認したら、そのまま次の問題へ進みます。</p></section>
+  ${DEMO?'<div class="notice">このファイルは動作確認用です。公開サイトの履歴とは別に保存します。</div>':''}
+  ${practiceActive?`<section class="panel"><span class="tag">連続演習・自動保存</span><h2 style="margin-top:10px">続きから再開</h2><p>現在の連続学習：${s.questionIds.filter(id=>s.committed[id]).length}問回答済み</p><p class="muted">中断しても回答履歴は残ります。問題数の区切りはありません。</p><p>${btn('連続演習を再開','resume','',true)}</p></section>`:legacyMock?`<section class="panel"><span class="tag">旧40問演習</span><h2 style="margin-top:10px">以前の途中データがあります</h2><p class="muted">履歴保護のため、そのまま再開できます。新しい本番校正は別ページです。</p><div class="row">${btn('再開','resume','',true)}${btn('終了して採点','finish-early')}</div></section>`:
+  `<section class="panel"><h2>連続演習を始める</h2><p>出題数は選びません。止めるまで自動で次の問題を選び続けます。</p><p>${btn('開始する','start-continuous','',true)}</p><p class="muted">同じ問題の連打を避け、未表示 → 弱点の別事例 → 復習時期の順を考慮して出題します。</p></section>`}
+  <div class="metrics">${metric(st.newCount,'このブラウザで未表示')}${metric(st.dueTopics,'復習期日のテーマ')}${metric(answered,'これまでの回答')}</div>
+  <section class="panel"><h2>本番形式は別</h2><p>本番校正だけは実試験に合わせて40問・60分で固定です。通常学習とは分けて記録します。</p><p><a class="button primary" href="./benchmark.html">本番校正ダッシュボード →</a></p></section>
+  <section class="panel"><h2>理解の積み上げ</h2><div class="metrics">${metric(ratio(st.first),'初回表示')}${metric(ratio(st.repeat),'別問題・再確認')}${metric(ratio(st.delayed),'2日以上空けた確認')}</div><p class="muted">△自己申告は使いません。同じ概念を別問題で何度も問った正誤から、理解が安定しているかを見ます。</p></section>`;
 }
 function feedback(q, selected, order, confidence) {
   const letter=letters[order.indexOf(q.correct)];
@@ -104,16 +95,16 @@ function feedback(q, selected, order, confidence) {
 }
 function quiz() {
   const v=E.view(p()); if (!v) {route='home';return home();}
-  const s=E.active(p()), bookmarked=E.profile(p()).bookmarks.includes(v.question.id);
-  return `<div class="quiz-top"><div><span class="tag">${esc(v.question.chapter)}</span><p class="muted">${v.index+1}/${v.total}問　${v.question.id}</p></div>${s.kind==='mock'?'<strong id="exam-timer" class="timer" role="timer"></strong>':''}${btn('中断','pause')}</div>
-  <progress max="${v.total}" value="${v.index+1}" aria-label="演習の進捗"></progress>
-  ${s.warning&&v.index===0?`<div class="notice">${esc(s.warning)}</div>`:''}
+  const s=E.active(p()), bookmarked=E.profile(p()).bookmarks.includes(v.question.id), isPractice=s.kind==='practice';
+  const answeredTotal=E.profile(p()).history.filter(h=>h.observed!==false&&h.kind==='practice').length;
+  return `<div class="quiz-top"><div><span class="tag">${isPractice?'連続演習':esc(v.question.chapter)}</span><p class="muted">${isPractice?`累計 ${answeredTotal+(v.revealed?0:1)}問目`:`${v.index+1}/${v.total}問　${v.question.id}`}</p></div>${s.kind==='mock'?'<strong id="exam-timer" class="timer" role="timer"></strong>':''}${btn('中断','pause')}</div>
+  ${isPractice?'':`<progress max="${v.total}" value="${v.index+1}" aria-label="演習の進捗"></progress>`}
   <section class="panel"><div class="row" style="justify-content:flex-end">${btn(bookmarked?'★ 保存済み':'☆ あとで復習','bookmark',`aria-pressed="${bookmarked}"`)}</div>
-  <h1 class="question">${esc(v.question.text)}</h1><p class="muted">選択肢をタップして回答してください。曖昧さは自己申告ではなく、別問題で同じ概念を繰り返し確認した結果から判断します。</p>
+  <h1 class="question">${esc(v.question.text)}</h1><p class="muted">選択肢をタップして回答してください。解説を確認したら次の問題へ進みます。</p>
   <div class="options" role="group" aria-label="選択肢">${v.options.map(o=>`<div class="option-row single"><button class="option ${o.selected?'chosen':''} ${v.revealed&&o.correct?'right':''} ${v.revealed&&o.selected&&!o.correct?'wrong':''}" data-act="answer" data-choice="${o.original}" ${v.revealed?'disabled':''} aria-pressed="${o.selected}"><span class="letter">${letters[o.display]}</span><span>${esc(o.text)}</span></button></div>`).join('')}</div>
   ${v.revealed?'':btn('分からない','unknown')} ${s.kind==='mock'&&Object.hasOwn(s.answers,v.question.id)?`<span class="tag">回答保存済み</span>`:''}
   </section>${v.revealed?feedback(v.feedback,v.selected,s.orders[v.question.id],v.confidence):''}
-  ${s.kind==='practice'?v.revealed?`<button class="primary full" data-act="next">${v.index+1===v.total?'結果を見る':'次の問題へ'}</button>`:'':`<div class="row">${btn('前へ','previous',v.index?'':'disabled')}${btn(v.index+1===v.total?'終了前に確認':'次へ','next','',true)}</div><div class="jump">${s.questionIds.map((id,i)=>`<button class="${s.index===i?'current':''} ${Object.hasOwn(s.answers,id)?'answered':''}" data-act="jump" data-index="${i}" aria-label="問${i+1}${Object.hasOwn(s.answers,id)?' 回答済み':' 未回答'}">${i+1}</button>`).join('')}</div>${btn('終了して採点','finish-early')}`}`;
+  ${isPractice?v.revealed?`<button class="primary full" data-act="continuous-next">次の問題へ</button>`:'':`<div class="row">${btn('前へ','previous',v.index?'':'disabled')}${btn(v.index+1===v.total?'終了前に確認':'次へ','next','',true)}</div><div class="jump">${s.questionIds.map((id,i)=>`<button class="${s.index===i?'current':''} ${Object.hasOwn(s.answers,id)?'answered':''}" data-act="jump" data-index="${i}" aria-label="問${i+1}${Object.hasOwn(s.answers,id)?' 回答済み':' 未回答'}">${i+1}</button>`).join('')}</div>${btn('終了して採点','finish-early')}`}`;
 }
 function result() {
   const r=currentResult||E.profile(p()).sessions.at(-1);
@@ -153,13 +144,18 @@ async function copyText(text) {try{await navigator.clipboard.writeText(text);toa
 async function handle(el) {
   const act=el.dataset.act;
   if (['home','history'].includes(act)) {if(route==='quiz')E.pause(p());save();navigate(act);return;}
+  if (act==='start-continuous') {
+    if (E.active(p())) {toast('途中の演習があります。続きから再開してください。');return;}
+    const started=E.createSession(B,p(),{count:1,mode:'smart',kind:'practice',continuous:true});
+    if(!started.session){toast(started.warning||'出題できる問題がありません。');return;}
+    save();navigate('quiz');return;
+  }
   if (act==='start') {
-    if (E.active(p())) {toast('途中の演習を再開するか、終了・採点してから始めてください。');return;}
+    if (E.active(p())) {toast('途中の演習を再開するか、終了してから始めてください。');return;}
     const kind=el.dataset.kind||'practice';
     if (kind==='mock'&&!confirm('40問・60分。途中の正解表示なし、中断中も時計は進みます。開始しますか？')) return;
-    const opt={count:Number(el.dataset.count),mode:el.dataset.mode,kind,...(kind==='mock'?{}:filters)};
+    const opt={count:Number(el.dataset.count)||1,mode:el.dataset.mode||'smart',kind,...(kind==='mock'?{}:filters)};
     const started=E.createSession(B,p(),opt); if(!started.session){toast(started.warning);return;}
-    if(el.dataset.planDate){started.session.plannedDate=el.dataset.planDate;started.session.plannedRound=Number(el.dataset.planRound)||null;}
     save();navigate('quiz');return;
   }
   if (act==='resume'){if(expire()){render();return;}E.resume(p());save();navigate('quiz');return;}
@@ -168,6 +164,11 @@ async function handle(el) {
     if(expire()){render();return;}
     if (!E.answer(p(),act==='unknown'?null:Number(el.dataset.choice),act==='unknown'?'unknown':'sure')) return;
     save();render();const f=$('.feedback');f?.focus({preventScroll:true});f?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return;
+  }
+  if (act==='continuous-next') {
+    const next=E.continuePractice(B,p());
+    if(!next.session){toast(next.warning||'次の問題を作成できませんでした。');return;}
+    save();render();window.scrollTo(0,0);return;
   }
   if (act==='next'||act==='previous'||act==='jump') {
     const s=E.active(p()); if(!s)return;
