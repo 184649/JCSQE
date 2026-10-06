@@ -39,9 +39,10 @@ test('multi-blank choices do not collapse to effective two-choice patterns',()=>
 test('all answer choices are unique and no benchmark UI uses uncertainty input',()=>{
  for(const q of B.questions)assert.equal(new Set(q.options).size,4,q.id);
  const fs=require('node:fs'),path=require('node:path'),root=path.resolve(__dirname,'..');
- const ui=fs.readFileSync(path.join(root,'benchmark-ui.js'),'utf8'),applied=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');
+ const ui=fs.readFileSync(path.join(root,'benchmark-ui.js'),'utf8'),applied=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8'),study=fs.readFileSync(path.join(root,'study-app.js'),'utf8');
  assert(!ui.includes('data-confidence="guess"'));assert(!ui.includes('△<'));
  assert(!applied.includes('data-confidence="guess"'));assert(!applied.includes('△<small>迷い'));
+ assert(!study.includes('id="answer-guess"'));assert(!study.includes('id="guess"'));assert(!study.includes('△ 迷いとして記録'));
 });
 
 test('official calibration metadata is explicit and never claims a score guarantee',()=>{
