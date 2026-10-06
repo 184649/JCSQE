@@ -8,6 +8,8 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'tests/applied*'
+      - 'benchmark*'
+      - 'tests/benchmark*'
       - '.github/workflows/applied-v11-checks.yml'
   pull_request:
     paths:
@@ -17,6 +19,8 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'tests/applied*'
+      - 'benchmark*'
+      - 'tests/benchmark*'
       - '.github/workflows/applied-v11-checks.yml'
   workflow_dispatch:
 permissions:
@@ -37,6 +41,9 @@ jobs:
           node --check applied-entry.js
           node --check applied-hard-overrides.js
           node --check applied-explanation-guide.js
+          node --check benchmark-bank.js
+          node --check benchmark-engine.js
+          node --check benchmark-ui.js
           node --check sw.js
       - name: Install browser test dependencies
         run: |
@@ -44,3 +51,5 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Test real storage, legacy compatibility and offline routes
         run: python tests/applied-browser-smoke.py
+      - name: Test benchmark scoring, progress and offline routes
+        run: python tests/benchmark-browser-smoke.py

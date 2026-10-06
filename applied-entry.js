@@ -5,6 +5,7 @@ if (new URLSearchParams(location.search).get('legacy') === '1') return;
 const app = document.getElementById('app');
 if (!app) return;
 const practiceUrl = new URL('./practice.html', location.href);
+const benchmarkUrl = new URL('./benchmark.html', location.href);
 const STORAGE_KEY = 'jcsqe-shokyu-state-v3';
 
 function activeApplied() {
@@ -39,7 +40,11 @@ function enhanceHome() {
   launch.className = 'panel';
   launch.setAttribute('aria-label', '新しい事例演習');
   launch.innerHTML = '<span class="tag">v12.2 · 内容再監査済み</span><h1 style="margin-top:14px">消去法から、<br>根拠で選ぶ練習へ。</h1><p>64問・32テーマ。似た概念・近い選択肢を比較し、問題文の条件を理解しないと選びにくい構成へ更新しました。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">事例で考える演習を開く →</a></p><p class="muted">ワンタップ回答。詳細解説では「判断基準→問題への適用→誤答の決定的な誤り→正解との比較」まで確認できます。v11までの履歴は残します。公式問題や全範囲の網羅を保証するものではありません。</p>';
-  main.append(launch, previous);
+  const benchmark = document.createElement('section');
+  benchmark.className='panel';
+  benchmark.setAttribute('aria-label','本番校正10回');
+  benchmark.innerHTML='<span class="tag">v13 · 公式公開問題準拠</span><h2 style="margin-top:12px">本番80%への積み上げ</h2><p>本番と同じ40問・60分。10回400問を重複なしで実施し、直近3回と分野別の安定性で到達度を確認します。</p><p><a class="primary" style="display:inline-block;text-decoration:none" href="./benchmark.html">本番校正ダッシュボード →</a></p><p class="muted">公式公開問題を難易度・選択肢設計のアンカーにした独自問題です。本番得点そのものを保証する表示はしません。</p>';
+  main.append(benchmark,launch,previous);
 }
 function setTextIfChanged(el,text){if(el.textContent!==text)el.textContent=text;}
 function enhancePlan() {
@@ -51,43 +56,21 @@ function enhancePlan() {
   if(!list) return;
   if(!main.querySelector('[data-plan-help]')){
     const help=document.createElement('div');
-    help.className='notice';
-    help.dataset.planHelp='1';
-    help.innerHTML='<b>未実施の回はここから開始できます</b><p>「未実施」または「今日」のカードをタップしてください。予定日を過ぎて実施しても、対象回の日付と実際の実施日は分けて記録します。</p>';
+    help.className='notice';help.dataset.planHelp='1';
+    help.innerHTML='<b>本番校正は計画カードから開始できます</b><p>今日または未実施のカードをタップすると、該当する40問・60分の固定回へ進みます。</p>';
     list.before(help);
   }
-  const applied=activeApplied();
-  const sessions=applied?.sessions || [];
-  const active=applied?.active || null;
-  for(const row of list.querySelectorAll('.plan-row')){
-    const strong=row.querySelector('strong'), tag=row.querySelector('.tag');
-    if(!strong || !tag) continue;
-    const m=strong.textContent.match(/(\d{2})\/(\d{2})\s*第(\d+)回/);
-    if(!m) continue;
-    const date=`2026-${m[1]}-${m[2]}`, round=Number(m[3]);
-    const completed=sessions.some(r=>r?.kind==='mock'&&r?.total===40&&r?.plannedDate===date);
-    const inProgress=active?.kind==='mock'&&active?.plannedDate===date;
-    row.classList.remove('plan-clickable','plan-completed');
-    row.removeAttribute('role');row.removeAttribute('tabindex');
-    delete row.dataset.appliedPlanDate;delete row.dataset.appliedPlanRound;
-    if(completed){
-      setTextIfChanged(tag,'実施済み');
-      row.classList.add('plan-completed');
-      continue;
-    }
-    if(inProgress){
-      setTextIfChanged(tag,'途中・再開 →');
-      row.classList.add('plan-clickable');
-      row.dataset.appliedPlanDate=date;row.dataset.appliedPlanRound=String(round);
-      row.setAttribute('role','button');row.tabIndex=0;
-      continue;
-    }
-    if(tag.textContent.includes('未実施')||tag.textContent.includes('今日')){
-      setTextIfChanged(tag,tag.textContent.includes('今日')?'今日・開始 →':'未実施・開始 →');
-      row.classList.add('plan-clickable');
-      row.dataset.appliedPlanDate=date;row.dataset.appliedPlanRound=String(round);
-      row.setAttribute('role','button');row.tabIndex=0;
-    }
+  let benchmarkStudy=null;
+  try{const raw=localStorage.getItem(STORAGE_KEY),st=raw?JSON.parse(raw):null,p=st?.profiles?.[st.activeProfileId];benchmarkStudy=p?.benchmarkStudy||null;}catch{}
+  const done=benchmarkStudy?.sessions||[],active=benchmarkStudy?.active||null;
+  for(const row of list.querySelectorAll('[data-benchmark-form]')){
+    const form=Number(row.dataset.benchmarkForm),date=row.dataset.benchmarkPlanDate,tag=row.querySelector('.tag');
+    if(!tag)continue;
+    const completed=done.some(r=>r?.firstAttempt&&r?.form===form),inProgress=active?.form===form;
+    row.classList.remove('plan-clickable','plan-completed');row.removeAttribute('role');row.removeAttribute('tabindex');
+    if(completed){setTextIfChanged(tag,'実施済み');row.classList.add('plan-completed');continue;}
+    if(inProgress){setTextIfChanged(tag,'途中・再開 →');row.classList.add('plan-clickable');row.setAttribute('role','button');row.tabIndex=0;continue;}
+    if(tag.textContent.includes('未実施')||tag.textContent.includes('今日')){setTextIfChanged(tag,tag.textContent.includes('今日')?'今日・開始 →':'未実施・開始 →');row.classList.add('plan-clickable');row.setAttribute('role','button');row.tabIndex=0;}
   }
 }
 function enhance(){enhanceHome();enhancePlan();}
@@ -98,6 +81,10 @@ function launchPlan(el){
 }
 // The exercise navigation opens the new bank; an explicit legacy URL opts out.
 document.addEventListener('click', e => {
+  const bench=e.target.closest('[data-benchmark-form]');
+  if(bench&&app.contains(bench)&&bench.classList.contains('plan-clickable')){
+    e.preventDefault();e.stopImmediatePropagation();const u=new URL(benchmarkUrl.href);u.searchParams.set('form',bench.dataset.benchmarkForm);u.searchParams.set('plan',bench.dataset.benchmarkPlanDate);location.href=u.href;return;
+  }
   const plan=e.target.closest('[data-applied-plan-date]');
   if(plan&&app.contains(plan)){e.preventDefault();e.stopImmediatePropagation();launchPlan(plan);return;}
   const target = e.target.closest('[data-action="nav"][data-route="practice"]');
@@ -107,6 +94,8 @@ document.addEventListener('click', e => {
 }, true);
 document.addEventListener('keydown', e=>{
   if(!['Enter',' '].includes(e.key))return;
+  const bench=e.target.closest?.('[data-benchmark-form]');
+  if(bench&&app.contains(bench)&&bench.classList.contains('plan-clickable')){e.preventDefault();const u=new URL(benchmarkUrl.href);u.searchParams.set('form',bench.dataset.benchmarkForm);u.searchParams.set('plan',bench.dataset.benchmarkPlanDate);location.href=u.href;return;}
   const plan=e.target.closest?.('[data-applied-plan-date]');
   if(plan&&app.contains(plan)){e.preventDefault();launchPlan(plan);}
 }, true);
