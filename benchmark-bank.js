@@ -248,7 +248,7 @@ function distribute(items,cap){
   const f=candidates[0];f.ids.push(q.id);f.chapter[q.chapter]=(f.chapter[q.chapter]||0)+1;f.level[q.level]=(f.level[q.level]||0)+1;
  }
 }
-distribute(qs.slice(0,170),17);distribute(qs.slice(170,340),17);distribute(qs.slice(340),6);
+distribute(qs.slice(0,60),6);distribute(qs.slice(60,140),8);distribute(qs.slice(140,340),20);distribute(qs.slice(340,400),6);
 for(const f of formSets){delete f.chapter;delete f.level;if(f.ids.length!==40)throw new Error('form length');}
 return {version:'15.0',published:true,total:400,forms:10,questions:qs,formSets,
  calibration:{label:'公式公開過去問の出題形式・難度アンカー準拠',note:'日科技連の初級サンプル問題と第18・20・22・26回の公開解説に見られる形式（同一テーマの記述判定、複数穴の組合せ、近接技法の選択、計算・テスト設計）をアンカーにした独自問題。公式問題の転載ではなく、本番得点の保証ではない。',
