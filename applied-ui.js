@@ -60,7 +60,7 @@ function home() {
   const chapters=B.chapters.map(x=>`<option value="${esc(x)}" ${filters.chapter===x?'selected':''}>${esc(x)}</option>`).join('');
   const topics=[...new Map(B.questions.filter(x=>filters.chapter==='all'||x.chapter===filters.chapter).map(q=>[q.topicKey,q.topic])).entries()];
   const coverage=st.total?Math.round(st.answered/st.total*1000)/10:0;
-  const modeLabel={smart:'おすすめ（自動）',new:'未回答のみ',wrong:'弱点のある概念',due:'復習時期',bookmarks:'保存した問題'}[filters.mode]||'おすすめ（自動）';
+  const labels={smart:'おすすめ（自動）',new:'未回答のみ',wrong:'弱点のある概念',due:'復習時期',bookmarks:'保存した問題'};const modeLabel=labels[practiceActive?s.mode:filters.mode]||'おすすめ（自動）';
   return `<section class="hero"><div class="eyebrow">JCSQE PRACTICE DOJO</div><h1>JCSQE<br><em>演習道場</em></h1><p class="muted">過去問道場の使い方を参考に、出題範囲を決めたら問題数を選ばず、そのまま連続で解き続ける作りです。</p></section>
   ${DEMO?'<div class="notice">このファイルは動作確認用です。公開サイトの履歴とは別に保存します。</div>':''}
   ${practiceActive?`<section class="panel"><span class="tag">続きから再開</span><h2 style="margin-top:10px">連続演習を続ける</h2><p>${s.questionIds.filter(id=>s.committed[id]).length}問回答済み・設定：${esc(modeLabel)}</p><p class="muted">中断位置と回答履歴は自動保存されています。</p><p>${btn('続きから再開','resume','',true)}</p></section>`:legacyPractice?`<section class="panel"><span class="tag">旧演習の途中データ</span><h2 style="margin-top:10px">以前の通常演習があります</h2><div class="row">${btn('再開','resume','',true)}${btn('終了して採点','finish-early')}</div></section>`:legacyMock?`<section class="panel"><span class="tag">旧演習の途中データ</span><h2 style="margin-top:10px">以前の40問演習があります</h2><div class="row">${btn('再開','resume','',true)}${btn('終了して採点','finish-early')}</div></section>`:''}
@@ -77,7 +77,7 @@ function home() {
       <label>テーマ<select id="topic"><option value="all">全テーマ</option>${topics.map(([id,label])=>`<option value="${esc(id)}" ${filters.topic===id?'selected':''}>${esc(label)}</option>`).join('')}</select></label>
     </div>
     <p class="muted">出題順はランダム化しつつ、同じ問題は一巡するまで重ねません。選択肢の位置もシャッフルします。</p>
-    <p>${practiceActive?'':btn('出題開始','start-continuous','',true)}</p>
+    <p>${s?'':btn('出題開始','start-continuous','',true)}</p>
   </section>
   <section class="metrics">${metric(st.answered+'/'+st.total,'網羅度 '+coverage+'%')}${metric(st.weakTopics,'弱点の概念')}${metric(st.dueTopics,'復習時期')}${metric(st.confirmedAcrossCases,'別事例で定着確認')}</section>
   <section class="panel"><h2>学習履歴</h2><p>回答は1問ごとに自動保存します。未回答・弱点・復習時期を履歴から判断し、次の出題へ反映します。</p><p>${btn('学習記録を見る','history')}</p></section>
