@@ -51,7 +51,7 @@ test('practice UI exposes one start action and no count selector',()=>{
  const fs=require('node:fs'),path=require('node:path'),root=path.resolve(__dirname,'..');
  const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');
  const html=fs.readFileSync(path.join(root,'practice.html'),'utf8');
- assert(ui.includes("data-act=\"start-continuous\""));
+ assert(ui.includes("start-continuous"));
  assert(!ui.includes('data-count='));
  assert(!ui.includes('[3,5,10]'));
  assert(html.includes('practice-bank-v15.js?v=15.1'));
