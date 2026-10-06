@@ -72,7 +72,7 @@ four(v=>{const u=[[90,150],[80,120],[100,140],[75,165]][v],m=(u[0]+u[1])/2;retur
  text:`装置が${u[0]}時間稼働して故障し、修理後さらに${u[1]}時間稼働して故障した。MTBFを総稼働時間÷故障回数で求めるといくつか。`,
  options:[`${m}時間`,`${u[0]+u[1]}時間`,`${m+10}時間`,'10時間'],correct:0,brief:'MTBF=総稼働時間÷故障回数。',detail:`${u[0]+u[1]}÷2=${m}時間。`,
  reasons:['正しい。','故障回数で割っていない。','修理時間を混ぜる。','修理時間と混同。']};});
-four(v=>{const tp=[30,48,72,45][v],fp=[10,12,18,15][v],fn=[20,12,8,5][v],p=Math.round(tp/(tp+fp)*1000)/10,r=Math.round(tp/(tp+fn)*1000)/10;return{chapter:'新領域',family:'AI品質',level:'L1',syllabus:'5.1.1',
+four(v=>{const tp=[30,48,72,45][v],fp=[10,12,18,15][v],fn=[20,16,8,5][v],p=Math.round(tp/(tp+fp)*1000)/10,r=Math.round(tp/(tp+fn)*1000)/10;return{chapter:'新領域',family:'AI品質',level:'L1',syllabus:'5.1.1',
  text:`分類モデルでTP=${tp}, FP=${fp}, FN=${fn}。PrecisionとRecallの正しい組合せはどれか。`,options:[`Precision ${p}%、Recall ${r}%`,`Precision ${r}%、Recall ${p}%`,`Precision ${Math.round(tp/(tp+fp+fn)*1000)/10}%、Recall 同じ`,`Precision 100%、Recall ${r}%`],correct:0,
  brief:'Precision=TP/(TP+FP)、Recall=TP/(TP+FN)。',detail:`Precision=${p}%、Recall=${r}%。`,reasons:['正しい。','逆。','分母が違う。','FPがある。']};});
 four(v=>{const top=['誤投薬','二重請求','警報喪失','データ消失'][v];return{chapter:'品質技術',family:'リスク分析',level:'L3',syllabus:'3.7.3',
