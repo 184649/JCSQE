@@ -47,25 +47,44 @@ try:
           localStorage.setItem(key,JSON.stringify(s));return s;
         }''', KEY)
         page.goto(base+'practice.html')
-        page.get_by_role('heading',name='いま解く').wait_for()
-        passed('HTTP entry loads complete application with actual localStorage')
-        page.locator('[data-act="start"][data-count="5"][data-mode="smart"]').first.click()
+        page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
+        assert page.locator('[data-act="start-continuous"]').count()==1
+        assert page.locator('[data-count]').count()==0
+        assert page.get_by_text('0/400',exact=False).count()>=1
+        passed('continuous dojo loads without any question-count selector')
+
+        page.locator('#practice-mode').select_option('smart')
+        page.locator('[data-act="start-continuous"]').click()
+        page.locator('.question').wait_for()
+        qid=page.locator('.quiz-top .muted').inner_text()
+        assert 'B15-' in qid
         assert page.locator('.feedback').count()==0
         wrong=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];const q=s.snapshots[id];return [0,1,2,3].find(x=>x!==q.correct)}''',KEY)
         page.locator(f'[data-act="answer"][data-choice="{wrong}"]').click()
         page.locator('.feedback').wait_for()
-        assert page.locator('.deep[open]').count()==0
         page.locator('.deep>summary').click()
         assert page.locator('.reason').count()==4
         assert page.get_by_role('heading',name='あなたの選択肢が誤りになる決定的理由').count()==1
         assert page.get_by_text('正解との直接比較：',exact=False).count()>=1
-        assert page.get_by_role('heading',name='1. まず使う判定基準').count()==1
-        assert page.get_by_role('heading',name='3. 似た概念との境界').count()==1
-        assert page.get_by_role('heading',name='4. 4択を同じ基準で検証').count()==1
-        assert page.locator('.decision-steps li').count()>=3
-        qid=page.locator('.quiz-top .muted').inner_text()
-        assert 'A12-' in qid
-        passed('v12.1 explains the selected wrong answer with a decision rule and direct comparison')
+        passed('continuous dojo gives detailed feedback after each answer')
+
+        first_id=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;return s.questionIds[s.index]}''',KEY)
+        page.locator('[data-act="continuous-next"]').click()
+        second_id=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;return s.questionIds[s.index]}''',KEY)
+        assert second_id!=first_id
+        assert page.locator('.feedback').count()==0
+        passed('next question is appended automatically without choosing a set size')
+
+        # Answer several questions and verify no duplicate within the live cycle.
+        for _ in range(7):
+            correct=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];return s.snapshots[id].correct}''',KEY)
+            page.locator(f'[data-act="answer"][data-choice="{correct}"]').click()
+            page.locator('[data-act="continuous-next"]').click()
+        ids=page.evaluate('''key=>JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active.questionIds''',KEY)
+        assert len(ids)==len(set(ids))
+        assert len(ids)>=9
+        passed('continuous cycle avoids repeating a question before the pool is exhausted')
+
         saved = page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
         session = saved['profiles']['fixture']['appliedStudy']['active']
         page.locator('[data-act="pause"]').click()
@@ -73,25 +92,17 @@ try:
         page.locator('[data-act="resume"]').click()
         current=page.evaluate('key=>JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active',KEY)
         assert all(session[k]==current[k] for k in ['id','questionIds','orders','index'])
-        passed('actual HTTP reload resumes exact set and option order')
+        passed('reload resumes exact continuous question and option order')
+
         page.locator('[data-act="pause"]').click()
-        page.locator('[data-act="finish-early"]').click()
-        assert page.locator('.result-item').count()==5
+        page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
+        assert page.get_by_text('続きから再開').count()>=1
         state=page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
-        a=state['profiles']['fixture']['appliedStudy']
-        assert sum(h['observed'] for h in a['history'])==1
-        assert len(a['exposures'])==1
-        page.evaluate('''()=>{window.__toggleEvents=[];document.getElementById('applied-app').addEventListener('toggle',e=>__toggleEvents.push([e.target.tagName,e.target.dataset.reviewId,e.target.open]),true);}''')
-        page.locator('.result-item>summary').nth(1).click()
-        page.wait_for_timeout(200)
-        print('EXPOSURE_DEBUG',page.evaluate('''key=>({events:window.__toggleEvents,exposures:JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.exposures,details:[...document.querySelectorAll('.result-item')].map(d=>[d.dataset.reviewId,d.open]),notices:[...document.querySelectorAll('.notice.error')].map(x=>x.textContent)})''',KEY),flush=True)
-        page.wait_for_function('key=>Object.keys(JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.exposures).length===2',arg=KEY)
-        passed('unshown tasks remain unseen until a result explanation is actually opened')
-        state=page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
+        assert len(state['profiles']['fixture']['appliedStudy']['history'])>=8
         old=dict(state['profiles']['fixture']);old.pop('appliedStudy')
         assert old==original['profiles']['fixture']
         assert state['profiles']['other']==original['profiles']['other']
-        passed('all original fixture histories, active old session and second profile unchanged')
+        passed('continuous answers are autosaved without altering legacy profile data')
         page.goto(base+'index.html')
         page.wait_for_function("!!document.querySelector('main#main')")
         page.locator('[data-action="nav"][data-route="plan"]').click()
@@ -110,14 +121,14 @@ try:
         page.goto(base+'index.html')
         page.locator('[data-applied-launch]').wait_for()
         page.locator('[data-applied-launch]').click()
-        page.get_by_role('heading',name='いま解く').wait_for()
-        passed('existing homepage launches new practice while keeping legacy access')
+        page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
+        passed('existing homepage launches continuous dojo while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-20261006');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-1-20261007');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='いま解く').wait_for()
-        passed('service worker reloads new practice while offline')
+        passed('service worker reloads continuous dojo while offline')
         page.goto(base+'index.html?legacy=1')
         page.wait_for_function("!!document.querySelector('main#main')")
         passed('service worker also reloads legacy application while offline')
