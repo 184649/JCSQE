@@ -19,7 +19,7 @@
 .chapter-table td:last-child,.chapter-table th:last-child{text-align:right}
 .bench-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.bench-timer{font-size:25px;color:var(--brand);font-variant-numeric:tabular-nums}
 .bench-question{font-size:19px;line-height:1.9;white-space:pre-wrap}
-.bench-options{display:grid;gap:11px;margin:20px 0}.bench-option-row{display:grid;grid-template-columns:minmax(0,1fr) 52px;gap:7px}
+.bench-options{display:grid;gap:11px;margin:20px 0}.bench-option-row{display:grid;grid-template-columns:minmax(0,1fr) 52px;gap:7px}.bench-option-row.single{grid-template-columns:minmax(0,1fr)}
 .bench-option{display:flex;align-items:flex-start;gap:10px;text-align:left;line-height:1.7}.bench-guess{font-size:19px}
 .bench-jump{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin:16px 0}.bench-jump button{padding:7px 0}.bench-jump .current{border:2px solid var(--brand)}.bench-jump .answered{color:var(--brand)}
 .result-score{font-size:54px;color:var(--brand);font-weight:850}.result-score small{font-size:20px}
