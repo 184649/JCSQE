@@ -52,7 +52,7 @@ try:
         page.locator('[data-act="start"][data-count="5"][data-mode="smart"]').first.click()
         assert page.locator('.feedback').count()==0
         wrong=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];const q=s.snapshots[id];return [0,1,2,3].find(x=>x!==q.correct)}''',KEY)
-        page.locator(f'[data-act="answer"][data-choice="{wrong}"][data-confidence="guess"]').click()
+        page.locator(f'[data-act="answer"][data-choice="{wrong}"]').click()
         page.locator('.feedback').wait_for()
         assert page.locator('.deep[open]').count()==0
         page.locator('.deep>summary').click()
@@ -113,7 +113,7 @@ try:
         page.get_by_role('heading',name='いま解く').wait_for()
         passed('existing homepage launches new practice while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v13-20261006');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-20261006');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='いま解く').wait_for()
