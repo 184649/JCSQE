@@ -127,7 +127,7 @@ try:
         assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-1-20261007');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
-        page.get_by_role('heading',name='いま解く').wait_for()
+        page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
         passed('service worker reloads continuous dojo while offline')
         page.goto(base+'index.html?legacy=1')
         page.wait_for_function("!!document.querySelector('main#main')")
