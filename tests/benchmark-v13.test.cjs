@@ -10,7 +10,7 @@ function p(){return {name:'fixture',history:[],sessions:[],bookmarks:[],exposure
 function completeForm(profile,form,score=40,now=T+form*100000){
  E.start(B,profile,form,now,rng(form));
  const s=E.active(profile);
- for(let i=0;i<40;i++){E.go(profile,i);const q=B.byId.get(s.ids[i]);const answer=i<score?q.correct:(q.correct+1)%4;E.answer(profile,answer,'sure',now+1000+i*100);}
+ for(let i=0;i<40;i++){E.go(profile,i);const q=B.byId.get(s.ids[i]);const answer=i<score?q.correct:(q.correct+1)%4;E.answer(profile,answer,now+1000+i*100);}
  return E.finish(B,profile,now+50000);
 }
 test('benchmark bank has exactly 10 disjoint 40-question forms / 400 questions',()=>{
@@ -24,9 +24,9 @@ test('every benchmark item has four unique options and explicit explanations',()
 });
 test('v15 mix follows public past-paper patterns rather than definition-only drills',()=>{
  const counts={};for(const q of B.questions)counts[q.type]=(counts[q.type]||0)+1;
- assert.deepEqual(counts,{'multi-blank':60,'same-topic-statement':80,'scenario-selection':200,applied:60});
- assert.equal(counts['same-topic-statement']/400,0.2);
- assert.equal((counts['scenario-selection']+counts.applied)/400,0.65);
+ assert.deepEqual(counts,{'multi-blank':100,'same-topic-statement':20,'scenario-selection':220,applied:60});
+ assert.equal(counts['same-topic-statement']/400,0.05);
+ assert.equal((counts['scenario-selection']+counts.applied)/400,0.70);
 });
 test('multi-blank choices do not collapse to effective two-choice patterns',()=>{
  for(const q of B.questions.filter(x=>x.type==='multi-blank')){
@@ -43,6 +43,24 @@ test('all answer choices are unique and no benchmark UI uses uncertainty input',
  assert(!ui.includes('data-confidence="guess"'));assert(!ui.includes('△<'));
  assert(!applied.includes('data-confidence="guess"'));assert(!applied.includes('△<small>迷い'));
  assert(!study.includes('id="answer-guess"'));assert(!study.includes('id="guess"'));assert(!study.includes('△ 迷いとして記録'));
+});
+
+test('all 170 syllabus checkpoints are represented and scenario distractors are explicitly tracked',()=>{
+ const concepts=globalThis.__unused;
+ const ids=new Set(B.questions.flatMap(q=>q.targetConceptIds||[]));
+ assert.equal(ids.size,170);
+ for(const q of B.questions.filter(x=>x.type==='scenario-selection')){
+  assert.equal(q.optionConceptIds.length,4,q.id);
+  assert.equal(new Set(q.optionConceptIds).size,4,q.id);
+  assert(q.optionConceptIds.includes(q.targetConceptIds[0]),q.id);
+ }
+});
+
+test('each fixed form keeps the intended v15 format mix',()=>{
+ for(const f of B.formSets){
+  const counts={};for(const id of f.ids){const q=B.byId.get(id);counts[q.type]=(counts[q.type]||0)+1;}
+  assert.deepEqual(counts,{'multi-blank':10,'same-topic-statement':2,'scenario-selection':22,applied:6});
+ }
 });
 
 test('official calibration metadata is explicit and never claims a score guarantee',()=>{
