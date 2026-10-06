@@ -250,10 +250,12 @@ for(let i=0;i<statementCandidates.length;i++){
 // These mirror the public multivariate-analysis style: understand the objective first,
 // then select among close methods from the same family/chapter.
 const scenarioTargets=rows.concat(rows.filter(x=>x.level==='L3'),rows.filter(x=>x.level==='L2').slice(0,20),rows.filter(x=>x.level==='L1').slice(0,7));
+const scenarioSeen=new Map();
 for(let i=0;i<scenarioTargets.length;i++){
- const q=scenarioTargets[i],cs=chooseFour(q,i+11),raw=cs.map(x=>x.term),shift=(i*2+1)%4,o=rotateChoice(raw,0,shift);
+ const q=scenarioTargets[i],occ=scenarioSeen.get(q.id)||0;scenarioSeen.set(q.id,occ+1);
+ const cs=chooseFour(q,i+11),raw=cs.map(x=>x.term),shift=(i*2+1)%4,o=rotateChoice(raw,0,shift);
  qs.push({id:id(),type:'scenario-selection',targetConceptIds:[q.id],optionConceptIds:cs.map(x=>x.id),chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
-  text:scenarioLead(q,i),
+  text:scenarioLead(q,occ),
   options:o.options,correct:o.correct,
   brief:`目的を先に読み、${q.term}と近接概念の適用範囲を比較する。`,
   detail:`設問の目的は「${q.definition}」に対応するため、${q.term}が最も直接的。`,
@@ -272,11 +274,11 @@ four(v=>{const lo=[5,10,1,100][v],hi=[12,20,9,999][v];return{chapter:'品質技�
  options:[`${lo}, ${Math.floor((lo+hi)/2)}, ${hi}`,`${lo-1}, ${lo}, ${hi}`,`${lo-1}, ${Math.floor((lo+hi)/2)}, ${hi+1}`,`${lo-1}, ${hi+1}, ${hi+2}`],correct:2,
  brief:'各同値クラスから代表値を1つずつ選ぶ。',detail:`クラスは「${lo}未満」「${lo}～${hi}」「${hi}超」。`,
  reasons:['有効クラスだけ。','上側無効クラスがない。','3クラスを各1つ含む。','有効クラスがない。']};});
-four(v=>({chapter:'品質技術',family:'テスト設計',level:'L3',syllabus:'3.8.1',
- text:'条件Aと条件Bの両方が真のときだけ処理Xを行う仕様である。実装が誤ってANDではなくORだった。既に「両方真」と「両方偽」は試した。追加で欠陥を検出できるケースはどれか。',
+four(v=>{const label=['会員条件と購入条件','利用資格と本人確認','在庫条件と承認条件','レビュー条件と欠陥条件'][v];return{chapter:'品質技術',family:'テスト設計',level:'L3',syllabus:'3.8.1',
+ text:`${label}の両方を満たすときだけ処理Xを行う仕様である。実装が誤ってANDではなくORだった。既に「両方真」と「両方偽」は試した。追加で欠陥を検出できるケースはどれか。`,
  options:['A=true, B=true','A=false, B=false','A=true, B=false','既存2ケースだけで十分'],correct:2,
  brief:'ANDとORの差は片方だけ真のケースで現れる。',detail:'片方だけ真ならANDは偽、ORは真になる。',
- reasons:['両方で真。','両方で偽。','結果が分かれる。','片方だけ真を試す必要がある。']}));
+ reasons:['両方で真。','両方で偽。','結果が分かれる。','片方だけ真を試す必要がある。']};});
 four(v=>{const x=[[-1,1],[-2,3],[-5,2],[-10,7]][v];return{chapter:'品質技術',family:'テスト設計',level:'L3',syllabus:'3.8.1',
  text:`x=${x[0]}とx=${x[1]}を実行した。判定「x<0」「x>0」の各真偽4結果を分母にした判定結果網羅率はどれか。\nif(x<0){...}else if(x>0){...}else{...}`,
  options:['50%','75%','100%','25%'],correct:1,brief:'真偽4結果のうち実行した結果を数える。',detail:'第1判定は真・偽、第2判定は真を通るため3/4=75%。',

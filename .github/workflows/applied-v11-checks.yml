@@ -5,6 +5,8 @@ on:
       - 'applied-*'
       - 'applied.css'
       - 'practice.html'
+      - 'practice-bank-v15.js'
+      - 'tests/continuous-practice*'
       - 'index.html'
       - 'sw.js'
       - 'tests/applied*'
@@ -41,6 +43,7 @@ jobs:
           node --check applied-entry.js
           node --check applied-hard-overrides.js
           node --check applied-explanation-guide.js
+          node --check practice-bank-v15.js
           node --check benchmark-bank.js
           node --check benchmark-engine.js
           node --check benchmark-ui.js
