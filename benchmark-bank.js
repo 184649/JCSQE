@@ -114,5 +114,5 @@ for(const f of formSets){delete f.chapter;delete f.level;if(f.ids.length!==40)th
 return {version:'13.0',published:true,total:400,forms:10,questions:qs,formSets,
  calibration:{label:'公式公開問題準拠',note:'日科技連が公開する初級サンプル問題・過去の出題解説を難易度・選択肢設計・説明粒度のアンカーにした独自問題。公式問題そのものではなく、本番得点の保証ではない。',
   officialExam:{questions:40,minutes:60,levels:['L1','L2','L3'],passLine:'70%程度'},
-  anchors:['https://www.juse.jp/jcsqe/content/jcsqe_beginner_sample.pdf','https://www.juse.jp/jcsqe/study/past/','https://www.juse.jp/jcsqe/study/past/22_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/26_syokyu_discription.pdf']}};
+  anchors:['https://www.juse.jp/jcsqe/content/jcsqe_beginner_sample.pdf','https://www.juse.jp/jcsqe/study/past/18_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/20_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/22_syokyu_discription.pdf','https://www.juse.jp/jcsqe/study/past/26_syokyu_discription.pdf']}};
 });
