@@ -28,3 +28,6 @@
 .reason-selected{box-shadow:inset 0 0 0 2px var(--brand)}
 .calculation code{display:inline-block;padding:3px 6px;border-radius:6px;background:var(--surface)}
 @media(max-width:480px){.reason-head{display:block}.verdict{display:inline-block;margin-top:7px}.selected-choice-analysis{border-left-width:3px}}
+
+.option-row.single{grid-template-columns:minmax(0,1fr)}
+@media(max-width:480px){.option-row.single{grid-template-columns:minmax(0,1fr)}}
