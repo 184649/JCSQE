@@ -8,7 +8,7 @@
 'use strict';
 const rows=(concepts||[]).map(x=>({...x}));
 if(rows.length!==170)throw new Error('benchmark: syllabus checkpoints must be 170');
-let serial=1;const qs=[],id=()=>`B14-${String(serial++).padStart(3,'0')}`;
+let serial=1;const qs=[],id=()=>`B15-${String(serial++).padStart(3,'0')}`;
 const peers=q=>{
  const fam=rows.filter(x=>x.id!==q.id&&x.family===q.family);
  const chap=rows.filter(x=>x.id!==q.id&&x.chapter===q.chapter&&!fam.some(y=>y.id===x.id));
