@@ -10,7 +10,7 @@ let state, lastRaw = null, blocked = false, storageError = '', route = 'home', c
 const params=new URLSearchParams(location.search);
 const plannedDate=/^2026-(?:10|11)-\d{2}$/.test(params.get('plan')||'')?params.get('plan'):null;
 const plannedRound=Number.isFinite(Number(params.get('round')))&&Number(params.get('round'))>0?Number(params.get('round')):null;
-const filters = {chapter:'all',topic:'all'};
+const filters = {mode:'smart',chapter:'all',topic:'all'};
 const btn = (label, action, extra='', primary=false) => `<button data-act="${action}" ${extra} class="${primary?'primary':''}">${label}</button>`;
 function toast(s) { const el=$('#applied-toast'); el.textContent=s; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),4500); }
 function p() { return state.profiles[state.activeProfileId]; }
@@ -57,14 +57,31 @@ function finishCurrent(){
 function home() {
   const st=E.stats(B,p()),s=E.active(p()),a=E.profile(p());
   const practiceActive=s?.kind==='practice', legacyMock=s?.kind==='mock';
-  const answered=a.history.filter(h=>h.observed!==false).length;
-  return `<section class="hero"><div class="eyebrow">CONTINUOUS PRACTICE</div><h1>問題数を選ばず、<br><em>そのまま次へ。</em></h1><p class="muted">未表示・弱点・復習時期を自動で優先します。1問回答して解説を確認したら、そのまま次の問題へ進みます。</p></section>
+  const chapters=B.chapters.map(x=>`<option value="${esc(x)}" ${filters.chapter===x?'selected':''}>${esc(x)}</option>`).join('');
+  const topics=[...new Map(B.questions.filter(x=>filters.chapter==='all'||x.chapter===filters.chapter).map(q=>[q.topicKey,q.topic])).entries()];
+  const coverage=st.total?Math.round(st.answered/st.total*1000)/10:0;
+  const modeLabel={smart:'おすすめ（自動）',new:'未回答のみ',wrong:'弱点のある概念',due:'復習時期',bookmarks:'保存した問題'}[filters.mode]||'おすすめ（自動）';
+  return `<section class="hero"><div class="eyebrow">JCSQE PRACTICE DOJO</div><h1>JCSQE<br><em>演習道場</em></h1><p class="muted">過去問道場の使い方を参考に、出題範囲を決めたら問題数を選ばず、そのまま連続で解き続ける作りです。</p></section>
   ${DEMO?'<div class="notice">このファイルは動作確認用です。公開サイトの履歴とは別に保存します。</div>':''}
-  ${practiceActive?`<section class="panel"><span class="tag">連続演習・自動保存</span><h2 style="margin-top:10px">続きから再開</h2><p>現在の連続学習：${s.questionIds.filter(id=>s.committed[id]).length}問回答済み</p><p class="muted">中断しても回答履歴は残ります。問題数の区切りはありません。</p><p>${btn('連続演習を再開','resume','',true)}</p></section>`:legacyMock?`<section class="panel"><span class="tag">旧40問演習</span><h2 style="margin-top:10px">以前の途中データがあります</h2><p class="muted">履歴保護のため、そのまま再開できます。新しい本番校正は別ページです。</p><div class="row">${btn('再開','resume','',true)}${btn('終了して採点','finish-early')}</div></section>`:
-  `<section class="panel"><h2>連続演習を始める</h2><p>出題数は選びません。止めるまで自動で次の問題を選び続けます。</p><p>${btn('開始する','start-continuous','',true)}</p><p class="muted">同じ問題の連打を避け、未表示 → 弱点の別事例 → 復習時期の順を考慮して出題します。</p></section>`}
-  <div class="metrics">${metric(st.newCount,'このブラウザで未表示')}${metric(st.dueTopics,'復習期日のテーマ')}${metric(answered,'これまでの回答')}</div>
-  <section class="panel"><h2>本番形式は別</h2><p>本番校正だけは実試験に合わせて40問・60分で固定です。通常学習とは分けて記録します。</p><p><a class="button primary" href="./benchmark.html">本番校正ダッシュボード →</a></p></section>
-  <section class="panel"><h2>理解の積み上げ</h2><div class="metrics">${metric(ratio(st.first),'初回表示')}${metric(ratio(st.repeat),'別問題・再確認')}${metric(ratio(st.delayed),'2日以上空けた確認')}</div><p class="muted">△自己申告は使いません。同じ概念を別問題で何度も問った正誤から、理解が安定しているかを見ます。</p></section>`;
+  ${practiceActive?`<section class="panel"><span class="tag">続きから再開</span><h2 style="margin-top:10px">連続演習を続ける</h2><p>${s.questionIds.filter(id=>s.committed[id]).length}問回答済み・設定：${esc(modeLabel)}</p><p class="muted">中断位置と回答履歴は自動保存されています。</p><p>${btn('続きから再開','resume','',true)}</p></section>`:legacyMock?`<section class="panel"><span class="tag">旧演習の途中データ</span><h2 style="margin-top:10px">以前の40問演習があります</h2><div class="row">${btn('再開','resume','',true)}${btn('終了して採点','finish-early')}</div></section>`:''}
+  <section class="panel"><h2>出題設定</h2>
+    <div class="filter-grid">
+      <label>出題対象<select id="practice-mode">
+        <option value="smart" ${filters.mode==='smart'?'selected':''}>おすすめ（未回答・弱点・復習時期を自動優先）</option>
+        <option value="new" ${filters.mode==='new'?'selected':''}>未回答のみ</option>
+        <option value="wrong" ${filters.mode==='wrong'?'selected':''}>弱点のある概念</option>
+        <option value="due" ${filters.mode==='due'?'selected':''}>復習時期の問題</option>
+        <option value="bookmarks" ${filters.mode==='bookmarks'?'selected':''}>保存した問題</option>
+      </select></label>
+      <label>分野<select id="chapter"><option value="all">全分野</option>${chapters}</select></label>
+      <label>テーマ<select id="topic"><option value="all">全テーマ</option>${topics.map(([id,label])=>`<option value="${esc(id)}" ${filters.topic===id?'selected':''}>${esc(label)}</option>`).join('')}</select></label>
+    </div>
+    <p class="muted">出題順はランダム化しつつ、同じ問題は一巡するまで重ねません。選択肢の位置もシャッフルします。</p>
+    <p>${practiceActive?'':btn('出題開始','start-continuous','',true)}</p>
+  </section>
+  <section class="metrics">${metric(st.answered+'/'+st.total,'網羅度 '+coverage+'%')}${metric(st.weakTopics,'弱点の概念')}${metric(st.dueTopics,'復習時期')}${metric(st.confirmedAcrossCases,'別事例で定着確認')}</section>
+  <section class="panel"><h2>学習履歴</h2><p>回答は1問ごとに自動保存します。未回答・弱点・復習時期を履歴から判断し、次の出題へ反映します。</p><p>${btn('学習記録を見る','history')}</p></section>
+  <section class="panel"><h2>本番校正</h2><p>本番形式だけは実試験に合わせて40問・60分です。通常の連続演習とは別に実施します。</p><p><a class="button primary" href="./benchmark.html">本番校正ダッシュボード →</a></p></section>`;
 }
 function feedback(q, selected, order, confidence) {
   const letter=letters[order.indexOf(q.correct)];
@@ -146,7 +163,7 @@ async function handle(el) {
   if (['home','history'].includes(act)) {if(route==='quiz')E.pause(p());save();navigate(act);return;}
   if (act==='start-continuous') {
     if (E.active(p())) {toast('途中の演習があります。続きから再開してください。');return;}
-    const started=E.createSession(B,p(),{count:1,mode:'smart',kind:'practice',continuous:true});
+    const started=E.createSession(B,p(),{count:1,mode:filters.mode,kind:'practice',continuous:true,chapter:filters.chapter,topic:filters.topic});
     if(!started.session){toast(started.warning||'出題できる問題がありません。');return;}
     save();navigate('quiz');return;
   }
@@ -187,6 +204,7 @@ async function handle(el) {
 }
 rootEl.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.disabled)return;e.preventDefault();Promise.resolve(handle(el)).catch(error=>{console.error(error);toast(error.message||'操作を確認できませんでした。');});});
 rootEl.addEventListener('change',e=>{
+  if(e.target.id==='practice-mode'){filters.mode=e.target.value;render();}
   if(e.target.id==='chapter'){filters.chapter=e.target.value;filters.topic='all';render();}
   if(e.target.id==='topic'){filters.topic=e.target.value;}
   if(e.target.id==='profile'){if(route==='quiz')E.pause(p());state.activeProfileId=e.target.value;E.profile(p());currentResult=null;save();render();}
