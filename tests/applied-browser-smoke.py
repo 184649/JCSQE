@@ -56,8 +56,8 @@ try:
         page.locator('#practice-mode').select_option('smart')
         page.locator('[data-act="start-continuous"]').click()
         page.locator('.question').wait_for()
-        qid=page.locator('.quiz-top .muted').inner_text()
-        assert 'B15-' in qid
+        qid=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;return s.questionIds[s.index]}''',KEY)
+        assert qid.startswith('B15-')
         assert page.locator('.feedback').count()==0
         wrong=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];const q=s.snapshots[id];return [0,1,2,3].find(x=>x!==q.correct)}''',KEY)
         page.locator(f'[data-act="answer"][data-choice="{wrong}"]').click()
