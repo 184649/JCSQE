@@ -15,53 +15,125 @@ const peers=q=>{
  return [...fam,...chap];
 };
 const customStatements={
- C023:[
-  'ISMSは、情報セキュリティに関する方針・リスク・対策・評価・改善を組織として継続的に管理する仕組みである。',
-  'ISMSは、個別ソフトウェア製品の脆弱性が存在しないことを第三者が保証する制度である。',
-  'ISMSは、機密性だけを対象とし、完全性や可用性は対象外とする管理体系である。',
-  'ISMSは、セキュリティ事故が発生した後の技術的復旧だけを対象とする活動である。'
+ C014:[
+  '品質計画には、品質目標、品質を作り込む方策、検証・妥当性確認・試験などの評価活動、合否判定基準などを含め、状況の変化に応じて見直す。',
+  '品質計画は開発開始時に一度確定すれば、その後に要求やプロセスが変更されても変更しない。',
+  '品質計画では品質を作り込む活動を定めるが、品質を評価する活動や合否判定基準は別管理とし、計画には含めない。',
+  '品質目標は自組織内部の過去実績だけから定め、他組織や市場水準との比較は品質計画では行わない。'
  ],
- C039:[
-  'スキル標準は、職務や役割に必要な能力を体系化し、育成や能力評価の基準として利用できる。',
-  'スキル標準は、個々の製品の品質特性を数値化するためのプロダクトメトリクスである。',
-  'スキル標準は、開発プロセスの成熟度を段階的に認証するプロセス評価モデルである。',
-  'スキル標準は、資格保有者だけを対象にした法的な業務独占基準である。'
+ C021:[
+  'QMSは、品質方針や品質目標を実現するために、組織のプロセス、責任、資源、評価、改善を体系的に運用する仕組みである。',
+  'QMSを構築し文書化すれば、その組織が開発する個別製品に欠陥が存在しないことが保証される。',
+  'QMSの目的は手順書を整備することであり、品質目標の達成状況や改善効果の評価はQMSの対象外である。',
+  'QMSは製品ごとのテスト結果を管理する仕組みであり、組織レベルの方針やプロセス改善は扱わない。'
+ ],
+ C023:[
+  'ISMSは、情報セキュリティのリスクを踏まえ、方針、管理策、評価、改善を組織として継続的に運用するマネジメントシステムである。',
+  'ISMSは機密性だけを管理対象とし、完全性や可用性に関するリスクは対象外とする。',
+  'ISMSを認証取得すれば、認証範囲内のシステムに脆弱性が存在しないことが保証される。',
+  'ISMSは事故発生後の復旧手順だけを対象とし、平常時のリスク評価や予防的管理策は扱わない。'
+ ],
+ C030:[
+  'CMMIは、組織の開発・管理などのプロセス能力や成熟度を評価・改善するために利用できるモデルである。',
+  'CMMIはテストプロセスだけの成熟度を段階的に評価することを目的としたモデルである。',
+  'CMMIは自動車向けソフトウェア開発プロセスの能力評価だけを対象とする業界固有モデルである。',
+  'CMMIで高い成熟度を得れば、個別製品の受入試験や品質評価を省略してよい。'
  ],
  C043:[
   'Quality Gateは、あらかじめ定めた品質基準を節目で確認し、次工程へ進むかを判断する仕組みである。',
-  'Quality Gateは、品質基準を満たさなくても納期が迫れば自動的に通過させる仕組みである。',
-  'Quality Gateは、リリース後に利用者満足度だけを測る評価方法である。',
-  'Quality Gateは、各担当者が個別判断で基準を変更することを前提とした仕組みである。'
+  'Quality Gateでは、納期が迫った場合には未達の品質基準を自動的に達成扱いへ変更する。',
+  'Quality Gateの基準は担当者が案件ごとにその場で変更し、事前に合意しないことが望ましい。',
+  'Quality Gateはリリース後の利用者満足度だけを測り、工程移行の判断には用いない。'
  ],
  C044:[
-  '外部委託では、委託範囲や責任分担、受入れ条件などを明確にし、委託先の成果を管理する必要がある。',
-  '外部委託した範囲の品質責任はすべて委託先へ移るため、発注側の受入れや監視は不要となる。',
-  '外部委託では、契約後に要求が変化しても委託内容を見直してはならない。',
-  '外部委託では、成果物の品質よりも契約金額だけを管理対象とする。'
+  '外部委託では、委託範囲、責任分担、要求、受入条件、変更時の扱いを明確にし、発注側も成果やリスクを管理する。',
+  '外部委託した範囲の品質責任はすべて委託先へ移るため、発注側は受入確認や進捗・品質の監視を行わない。',
+  '外部委託では契約後の要求変更は認めず、必要な変更が生じた場合も契約内容や計画を見直さない。',
+  '外部委託の管理では契約金額を最優先し、成果物の品質基準や受入条件は委託先へ一任する。'
  ],
  C045:[
-  'リスクマネジメントは、リスクを識別・分析・評価し、対応を選択して継続的に管理する活動である。',
-  'リスクマネジメントは、発生済みの障害だけを記録し、将来起こり得る事象は扱わない。',
-  'リスクマネジメントでは、発生確率が低いリスクは影響度に関係なく無視する。',
-  'リスクマネジメントは、テスト工程だけで実施し、企画・設計・運用では扱わない。'
+  'リスクマネジメントでは、将来起こり得るリスクを識別し、分析・評価し、対応を選択し、その後も監視・見直しを行う。',
+  'リスクマネジメントは既に発生した障害の原因分析だけを対象とし、未発生の事象は扱わない。',
+  '発生確率が低いリスクは影響度にかかわらず一律に無視するのがリスクマネジメントの原則である。',
+  'リスクマネジメントはテスト工程だけで実施し、企画・要求・設計・運用では実施しない。'
  ],
- C138:[
-  'PMBOKは、プロジェクトマネジメントの知識や実践を体系化したガイドとして利用される。',
-  'PMBOKは、ソフトウェア製品品質の8特性だけを定義する品質モデルである。',
-  'PMBOKは、テストプロセス成熟度だけを評価するモデルである。',
-  'PMBOKは、プログラムのソースコード規約を定める国際規格である。'
+ C049:[
+  '構成管理では、構成品目を識別し、ベースラインを設定し、変更を統制し、状態を記録・報告し、構成の整合性を確認する。',
+  '構成管理では常に最新版だけを保管すればよく、過去版やベースライン、変更履歴を追跡できる必要はない。',
+  'ベースラインへの変更可否は、影響評価や正式な承認を行わず、変更を実装する開発者本人が最終判断する。',
+  '構成管理の対象はソースコードに限定し、設計書、設定、ライブラリ、ビルド環境などは対象外とする。'
  ],
- C139:[
-  'ベンチマーキングは、他組織や優れた実践などとの比較から改善の手掛かりを得る方法である。',
-  'ベンチマーキングでは、他組織の事例を参照すると独自性が失われるため比較してはならない。',
-  'ベンチマーキングは、ソフトウェアの命令網羅率を計測するテスト技法である。',
-  'ベンチマーキングは、個人情報の影響を導入前に評価する活動である。'
+ C081:[
+  'GQMでは、まずGoalを定め、その達成を判断するQuestionを設定し、Questionへ答えるためのMetricを導く。',
+  'GQMでは、収集しやすいMetricを先に決め、そのMetricに合うGoalを後から定義する。',
+  'GQMのQはQualityを意味し、Goal－Quality－Metricの3層で構成される。',
+  'GQMでは一つのGoalから導かれるMetricは必ず一つであり、複数のQuestionやMetricを対応付けない。'
  ],
  C083:[
-  'MTBFは、修理可能な対象について故障間の平均稼働時間を表す信頼性指標である。',
-  'MTBFは、故障してから修理が完了するまでの平均時間を表す指標である。',
-  'MTBFは、単位規模当たりの欠陥件数を表す品質指標である。',
-  'MTBFは、サービス契約で合意した月間稼働率そのものを表す指標である。'
+  'MTBFは、修理可能な対象について、故障と次の故障の間の平均稼働時間を表す代表的な信頼性指標である。',
+  'MTBFは、故障が発生してから修理を完了し利用可能になるまでの平均修復時間を表す。',
+  'MTBFは、可用性を百分率で直接表す指標であり、故障間の稼働時間とは関係しない。',
+  '故障発生頻度が変わらなくても修理作業を高速化すれば、MTBFは同じ割合で必ず大きくなる。'
+ ],
+ C092:[
+  'Verificationは、成果物が仕様や設計など規定された要求事項を満たしているかを確認する活動である。',
+  'Verificationは、実利用者の業務目的や意図した利用状況を満たしているかだけを確認する活動である。',
+  'Verificationは実行可能なソフトウェアを用いる動的テストに限定され、レビューや静的解析は含まれない。',
+  'VerificationはValidationが完了した後にだけ実施する活動であり、開発途中の成果物には適用しない。'
+ ],
+ C093:[
+  'Validationは、最終的なシステムや成果物が、意図した用途や利用者のニーズを満たしているかを確認する活動である。',
+  'Validationは、設計書やコードが上位仕様書の記述どおりであることだけを確認する活動である。',
+  'Validationは静的レビューだけで実施し、実利用者や本番に近い利用状況での確認は行わない。',
+  'Validationは必ず運用開始後に行うものであり、リリース前の受入れ・利用シナリオ確認では実施しない。'
+ ],
+ C119:[
+  'CIでは、変更を頻繁に統合し、ビルドやテストなどを自動化して、統合結果を早く開発者へフィードバックする。',
+  'CIの特徴は、開発環境から本番環境へのデプロイまでを自動化することにあり、統合頻度は重要ではない。',
+  'CIでビルドやテストを自動化すれば、成功・失敗の結果を人が確認し改善へつなげる必要はなくなる。',
+  'CIは統合による競合を減らすため、各開発者が長期間変更を保持し、月末など決めた日にまとめて統合する。'
+ ],
+ C127:[
+  'SLAは、サービス提供者と利用者の間で、可用性や応答時間などのサービス水準、測定条件などを合意するものである。',
+  'SLAは、サービス提供組織が内部で設定する努力目標であり、利用者との合意を必要としない。',
+  'SLAを締結したサービスでは、合意値を一度でも下回らないことが技術的に保証される。',
+  'SLAはサービス改善のための管理活動そのものを指し、合意内容を文書化したものではない。'
+ ],
+ C139:[
+  'ベンチマーキングは、他組織や優れた実践、自組織の他部門などとの比較から、目標設定や改善の手掛かりを得る方法である。',
+  'ベンチマーキングでは他組織の事例や水準を参照せず、自組織の過去実績だけで目標を決定する。',
+  'ベンチマーキングは、競合組織の手順をそのまま複製することを目的とし、自組織への適用可能性は検討しない。',
+  'ベンチマーキングはソフトウェアの実行性能を計測するベンチマークテストと同義であり、組織改善には用いない。'
+ ],
+ C141:[
+  'ITILは、ITサービスマネジメントのプロセスや実践に関するベストプラクティスを体系化したガイダンスである。',
+  'ITILはソフトウェア開発ライフサイクルの工程と成果物を定める開発プロセス規格である。',
+  'ITILはITサービスマネジメントシステムの第三者認証要求事項を定めるISO規格そのものである。',
+  'ITILは障害発生時の復旧だけを扱い、サービス設計、変更、継続的改善などは対象外とする。'
+ ],
+ C046:[
+  'FMEAは、構成要素などの故障モードを起点に、その原因や上位への影響を分析し、リスク低減につなげる。',
+  'FMEAは、重大事故などの頂上事象を起点に、AND・ORで原因の組合せを論理的に分解する。',
+  'FMEAは、More、Less、Noなどのガイドワードを使い、設計意図からの逸脱を体系的に洗い出す。',
+  'FMEAでは故障モードの影響は扱わず、発生確率だけを計算して優先順位を決める。'
+ ],
+ C047:[
+  'FTAは、望ましくない頂上事象を起点に、AND・ORなどで原因の組合せをトップダウンに分解する。',
+  'FTAは、部品ごとの故障モードを列挙して、それぞれが上位機能へ与える影響を順に分析する。',
+  'FTAは、ガイドワードを用いて設計意図からの逸脱を列挙し、危険性を検討する。',
+  'FTAでは原因事象間の論理関係を扱わず、原因候補を箇条書きにするだけで分析を完了する。'
+ ],
+ C109:[
+  'Privacy by Designは、企画・設計の初期段階からプライバシー保護を仕組みに組み込み、必要最小限のデータ利用などを考慮する。',
+  'Privacy by Designは、導入直前にプライバシー影響を評価するPIAを実施することだけを意味する。',
+  'Privacy by Designは、匿名化や暗号化など一つのPETを導入すれば完了し、その他の設計判断は対象外である。',
+  'Privacy by Designは、プライバシー事故が発生した後に復旧・補償を行う事後対応の考え方である。'
+ ],
+ C157:[
+  'PIAは、新しいシステムや変更が個人のプライバシーへ与える影響を事前に整理し、リスク、低減策、残余リスクを評価する活動である。',
+  'PIAは、設計の全段階でプライバシー保護を組み込むという設計原則そのものを指す。',
+  'PIAは、匿名化や暗号化などの保護技術を実装する技術方式の総称である。',
+  'PIAは、機密性・完全性・可用性だけを対象とする情報セキュリティ監査であり、個人へのプライバシー影響は扱わない。'
  ]
 };
 function sameFamilyPeers(q,index){
@@ -144,7 +216,7 @@ function scenarioLead(q,variant){
 // A. 60 multi-blank combination questions.
 // Public past exams include multi-blank combinations; each answer option below changes every slot,
 // so duplicated wording cannot collapse the question into an effective two-choice item.
-const multiCandidates=rows.filter(q=>relatedPool(q).length>=3).sort((a,b)=>(b.level==='L3')-(a.level==='L3')||(b.level==='L2')-(a.level==='L2')||a.id.localeCompare(b.id)).slice(0,60);
+const multiCandidates=rows.filter(q=>relatedPool(q).length>=3).sort((a,b)=>(b.level==='L3')-(a.level==='L3')||(b.level==='L2')-(a.level==='L2')||a.id.localeCompare(b.id)).slice(0,100);
 for(let i=0;i<multiCandidates.length;i++){
  const q=multiCandidates[i],cs=chooseFour(q,i+3),terms=cs.map(x=>x.term);
  const perms=[[0,1,2,3],[1,0,3,2],[2,3,0,1],[3,2,1,0]];
@@ -161,20 +233,9 @@ for(let i=0;i<multiCandidates.length;i++){
 // B. 80 same-topic statement questions.
 // This follows public GQM / quality-plan / configuration-management questions:
 // all four choices discuss the same topic; only scope, purpose or responsibility makes one correct.
-const statementCandidates=[...rows].sort((a,b)=>(customStatements[b.id]?1:0)-(customStatements[a.id]?1:0)||(b.level==='L3')-(a.level==='L3')||(b.level==='L2')-(a.level==='L2')||a.id.localeCompare(b.id)).slice(0,80);
+const statementCandidates=Object.keys(customStatements).map(id=>byId.get(id)).filter(Boolean);
 for(let i=0;i<statementCandidates.length;i++){
- const q=statementCandidates[i];
- let statements=customStatements[q.id];
- if(!statements){
-  const ps=relatedPool(q).slice(0,3);
-  while(ps.length<3)ps.push(rows[(i+ps.length*19)%rows.length]);
-  statements=[
-   `${q.term}は、${q.definition}`,
-   `${q.term}は、${ps[0].definition}`,
-   `${q.term}の主な対象は、${ps[1].definition}`,
-   `${q.term}を適用する主目的は、${ps[2].definition}`
-  ];
- }
+ const q=statementCandidates[i],statements=customStatements[q.id];
  const o=rotateChoice(statements,0,(i*3+1)%4);
  qs.push({id:id(),type:'same-topic-statement',targetConceptIds:[q.id],chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
   text:`「${q.term}」に関する説明として、もっとも適切なものを選べ。`,
@@ -187,7 +248,7 @@ for(let i=0;i<statementCandidates.length;i++){
 // C. 200 scenario / method-selection questions.
 // These mirror the public multivariate-analysis style: understand the objective first,
 // then select among close methods from the same family/chapter.
-const scenarioTargets=rows.concat(rows.filter(x=>x.level==='L3').slice(0,23),rows.filter(x=>x.level==='L2').slice(0,7));
+const scenarioTargets=rows.concat(rows.filter(x=>x.level==='L3').slice(0,30),rows.filter(x=>x.level==='L2').slice(0,20));
 for(let i=0;i<scenarioTargets.length;i++){
  const q=scenarioTargets[i],cs=chooseFour(q,i+11),raw=cs.map(x=>x.term),shift=(i*2+1)%4,o=rotateChoice(raw,0,shift);
  qs.push({id:id(),type:'scenario-selection',targetConceptIds:[q.id],chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
@@ -312,7 +373,7 @@ function distribute(items,cap){
   const f=candidates[0];f.ids.push(q.id);f.chapter[q.chapter]=(f.chapter[q.chapter]||0)+1;f.level[q.level]=(f.level[q.level]||0)+1;
  }
 }
-distribute(qs.slice(0,60),6);distribute(qs.slice(60,140),8);distribute(qs.slice(140,340),20);distribute(qs.slice(340,400),6);
+distribute(qs.slice(0,100),10);distribute(qs.slice(100,120),2);distribute(qs.slice(120,340),22);distribute(qs.slice(340,400),6);
 for(const f of formSets){delete f.chapter;delete f.level;if(f.ids.length!==40)throw new Error('form length');}
 return {version:'15.0',published:true,total:400,forms:10,questions:qs,formSets,
  calibration:{label:'公式公開過去問の出題形式・難度アンカー準拠',note:'日科技連の初級サンプル問題と第18・20・22・26回の公開解説に見られる形式（同一テーマの記述判定、複数穴の組合せ、近接技法の選択、計算・テスト設計）をアンカーにした独自問題。公式問題の転載ではなく、本番得点の保証ではない。',
