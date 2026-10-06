@@ -97,11 +97,20 @@ four(v=>{const d=['IaaSで自社導入OSのパッチ管理','小さい変更を�
  text:`次の状況にもっとも適切な対応はどれか。\n${d[v]}`,options:o,correct:v,brief:'責任分界・CI・段階展開・SLAを区別する。',detail:`${o[v]}が中心。`,reasons:o.map((x,i)=>i===v?'直接対応。':'別の運用概念。')};});
 
 if(qs.length!==400)throw new Error('benchmark total '+qs.length);
-const formSets=Array.from({length:10},(_,i)=>({form:i+1,ids:[]}));
-for(let i=0;i<170;i++)formSets[i%10].ids.push(qs[i].id);
-for(let i=170;i<340;i++)formSets[(i-170)%10].ids.push(qs[i].id);
-for(let i=340;i<400;i++)formSets[(i-340)%10].ids.push(qs[i].id);
-for(const f of formSets)if(f.ids.length!==40)throw new Error('form length');
+const formSets=Array.from({length:10},(_,i)=>({form:i+1,ids:[],chapter:{},level:{}}));
+function distribute(items,cap){
+ for(const q of items){
+  const candidates=formSets.filter(f=>f.ids.filter(id=>{const z=qs.find(x=>x.id===id);return z&&z.type===q.type;}).length<cap);
+  candidates.sort((a,b)=>{
+   const sa=10*(a.chapter[q.chapter]||0)+7*(a.level[q.level]||0)+a.ids.length;
+   const sb=10*(b.chapter[q.chapter]||0)+7*(b.level[q.level]||0)+b.ids.length;
+   return sa-sb||a.form-b.form;
+  });
+  const f=candidates[0];f.ids.push(q.id);f.chapter[q.chapter]=(f.chapter[q.chapter]||0)+1;f.level[q.level]=(f.level[q.level]||0)+1;
+ }
+}
+distribute(qs.slice(0,170),17);distribute(qs.slice(170,340),17);distribute(qs.slice(340),6);
+for(const f of formSets){delete f.chapter;delete f.level;if(f.ids.length!==40)throw new Error('form length');}
 return {version:'13.0',published:true,total:400,forms:10,questions:qs,formSets,
  calibration:{label:'公式公開問題準拠',note:'日科技連が公開する初級サンプル問題・過去の出題解説を難易度・選択肢設計・説明粒度のアンカーにした独自問題。公式問題そのものではなく、本番得点の保証ではない。',
   officialExam:{questions:40,minutes:60,levels:['L1','L2','L3'],passLine:'70%程度'},
