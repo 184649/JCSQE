@@ -56,14 +56,14 @@ function finishCurrent(){
 }
 function home() {
   const st=E.stats(B,p()),s=E.active(p()),a=E.profile(p());
-  const practiceActive=s?.kind==='practice', legacyMock=s?.kind==='mock';
+  const practiceActive=s?.kind==='practice'&&s?.continuous===true, legacyPractice=s?.kind==='practice'&&s?.continuous!==true, legacyMock=s?.kind==='mock';
   const chapters=B.chapters.map(x=>`<option value="${esc(x)}" ${filters.chapter===x?'selected':''}>${esc(x)}</option>`).join('');
   const topics=[...new Map(B.questions.filter(x=>filters.chapter==='all'||x.chapter===filters.chapter).map(q=>[q.topicKey,q.topic])).entries()];
   const coverage=st.total?Math.round(st.answered/st.total*1000)/10:0;
   const modeLabel={smart:'おすすめ（自動）',new:'未回答のみ',wrong:'弱点のある概念',due:'復習時期',bookmarks:'保存した問題'}[filters.mode]||'おすすめ（自動）';
   return `<section class="hero"><div class="eyebrow">JCSQE PRACTICE DOJO</div><h1>JCSQE<br><em>演習道場</em></h1><p class="muted">過去問道場の使い方を参考に、出題範囲を決めたら問題数を選ばず、そのまま連続で解き続ける作りです。</p></section>
   ${DEMO?'<div class="notice">このファイルは動作確認用です。公開サイトの履歴とは別に保存します。</div>':''}
-  ${practiceActive?`<section class="panel"><span class="tag">続きから再開</span><h2 style="margin-top:10px">連続演習を続ける</h2><p>${s.questionIds.filter(id=>s.committed[id]).length}問回答済み・設定：${esc(modeLabel)}</p><p class="muted">中断位置と回答履歴は自動保存されています。</p><p>${btn('続きから再開','resume','',true)}</p></section>`:legacyMock?`<section class="panel"><span class="tag">旧演習の途中データ</span><h2 style="margin-top:10px">以前の40問演習があります</h2><div class="row">${btn('再開','resume','',true)}${btn('終了して採点','finish-early')}</div></section>`:''}
+  ${practiceActive?`<section class="panel"><span class="tag">続きから再開</span><h2 style="margin-top:10px">連続演習を続ける</h2><p>${s.questionIds.filter(id=>s.committed[id]).length}問回答済み・設定：${esc(modeLabel)}</p><p class="muted">中断位置と回答履歴は自動保存されています。</p><p>${btn('続きから再開','resume','',true)}</p></section>`:legacyPractice?`<section class="panel"><span class="tag">旧演習の途中データ</span><h2 style="margin-top:10px">以前の通常演習があります</h2><div class="row">${btn('再開','resume','',true)}${btn('終了して採点','finish-early')}</div></section>`:legacyMock?`<section class="panel"><span class="tag">旧演習の途中データ</span><h2 style="margin-top:10px">以前の40問演習があります</h2><div class="row">${btn('再開','resume','',true)}${btn('終了して採点','finish-early')}</div></section>`:''}
   <section class="panel"><h2>出題設定</h2>
     <div class="filter-grid">
       <label>出題対象<select id="practice-mode">
@@ -112,16 +112,16 @@ function feedback(q, selected, order, confidence) {
 }
 function quiz() {
   const v=E.view(p()); if (!v) {route='home';return home();}
-  const s=E.active(p()), bookmarked=E.profile(p()).bookmarks.includes(v.question.id), isPractice=s.kind==='practice';
+  const s=E.active(p()), bookmarked=E.profile(p()).bookmarks.includes(v.question.id), isPractice=s.kind==='practice', continuous=isPractice&&s.continuous===true;
   const answeredTotal=E.profile(p()).history.filter(h=>h.observed!==false&&h.kind==='practice').length;
-  return `<div class="quiz-top"><div><span class="tag">${isPractice?'連続演習':esc(v.question.chapter)}</span><p class="muted">${isPractice?`累計 ${answeredTotal+(v.revealed?0:1)}問目`:`${v.index+1}/${v.total}問　${v.question.id}`}</p></div>${s.kind==='mock'?'<strong id="exam-timer" class="timer" role="timer"></strong>':''}${btn('中断','pause')}</div>
-  ${isPractice?'':`<progress max="${v.total}" value="${v.index+1}" aria-label="演習の進捗"></progress>`}
+  return `<div class="quiz-top"><div><span class="tag">${continuous?'連続演習':esc(v.question.chapter)}</span><p class="muted">${continuous?`累計 ${answeredTotal+(v.revealed?0:1)}問目`:`${v.index+1}/${v.total}問　${v.question.id}`}</p></div>${s.kind==='mock'?'<strong id="exam-timer" class="timer" role="timer"></strong>':''}${btn('中断','pause')}</div>
+  ${continuous?'':`<progress max="${v.total}" value="${v.index+1}" aria-label="演習の進捗"></progress>`}
   <section class="panel"><div class="row" style="justify-content:flex-end">${btn(bookmarked?'★ 保存済み':'☆ あとで復習','bookmark',`aria-pressed="${bookmarked}"`)}</div>
   <h1 class="question">${esc(v.question.text)}</h1><p class="muted">選択肢をタップして回答してください。解説を確認したら次の問題へ進みます。</p>
   <div class="options" role="group" aria-label="選択肢">${v.options.map(o=>`<div class="option-row single"><button class="option ${o.selected?'chosen':''} ${v.revealed&&o.correct?'right':''} ${v.revealed&&o.selected&&!o.correct?'wrong':''}" data-act="answer" data-choice="${o.original}" ${v.revealed?'disabled':''} aria-pressed="${o.selected}"><span class="letter">${letters[o.display]}</span><span>${esc(o.text)}</span></button></div>`).join('')}</div>
   ${v.revealed?'':btn('分からない','unknown')} ${s.kind==='mock'&&Object.hasOwn(s.answers,v.question.id)?`<span class="tag">回答保存済み</span>`:''}
   </section>${v.revealed?feedback(v.feedback,v.selected,s.orders[v.question.id],v.confidence):''}
-  ${isPractice?v.revealed?`<button class="primary full" data-act="continuous-next">次の問題へ</button>`:'':`<div class="row">${btn('前へ','previous',v.index?'':'disabled')}${btn(v.index+1===v.total?'終了前に確認':'次へ','next','',true)}</div><div class="jump">${s.questionIds.map((id,i)=>`<button class="${s.index===i?'current':''} ${Object.hasOwn(s.answers,id)?'answered':''}" data-act="jump" data-index="${i}" aria-label="問${i+1}${Object.hasOwn(s.answers,id)?' 回答済み':' 未回答'}">${i+1}</button>`).join('')}</div>${btn('終了して採点','finish-early')}`}`;
+  ${isPractice?v.revealed?(continuous?`<button class="primary full" data-act="continuous-next">次の問題へ</button>`:`<button class="primary full" data-act="next">${v.index+1===v.total?'結果を見る':'次の問題へ'}</button>`):'':`<div class="row">${btn('前へ','previous',v.index?'':'disabled')}${btn(v.index+1===v.total?'終了前に確認':'次へ','next','',true)}</div><div class="jump">${s.questionIds.map((id,i)=>`<button class="${s.index===i?'current':''} ${Object.hasOwn(s.answers,id)?'answered':''}" data-act="jump" data-index="${i}" aria-label="問${i+1}${Object.hasOwn(s.answers,id)?' 回答済み':' 未回答'}">${i+1}</button>`).join('')}</div>${btn('終了して採点','finish-early')}`}`;
 }
 function result() {
   const r=currentResult||E.profile(p()).sessions.at(-1);
