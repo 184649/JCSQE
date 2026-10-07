@@ -1,4 +1,4 @@
-/* Additive v15.2 launcher. ?legacy=1 leaves all previous screens untouched. */
+/* Additive v15.6 launcher. ?legacy=1 leaves all previous screens untouched. */
 (() => {
 'use strict';
 if (new URLSearchParams(location.search).get('legacy') === '1') return;
@@ -39,11 +39,11 @@ function enhanceHome() {
   const launch = document.createElement('section');
   launch.className = 'panel';
   launch.setAttribute('aria-label', 'JCSQE演習道場');
-  launch.innerHTML = '<span class="tag">v15.2 · JCSQE演習道場</span><h1 style="margin-top:14px">問題数を選ばず、<br>次々と解く。</h1><p>公式公開過去問の出題形式を参考にした400問から、未回答・弱点・復習時期を自動で優先。1問ごとに教科書水準の解説で周辺知識まで確認し、そのまま次へ進みます。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">演習道場を開く →</a></p><p class="muted">過去問道場を参考に、出題範囲の指定・続きから再開・未回答/弱点の復習・網羅度と学習履歴を重視した作りです。通常演習に問題数選択はありません。</p>';
+  launch.innerHTML = '<span class="tag">v15.6 · JCSQE演習道場</span><h1 style="margin-top:14px">問題数を選ばず、<br>次々と解く。</h1><p>公式公開過去問の出題形式を参考にした400問から、未回答・弱点・復習時期を自動で優先。1問ごとに教科書水準の解説で周辺知識まで確認し、そのまま次へ進みます。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">演習道場を開く →</a></p><p class="muted">過去問道場を参考に、出題範囲の指定・続きから再開・未回答/弱点の復習・網羅度と学習履歴を重視した作りです。通常演習に問題数選択はありません。</p>';
   const benchmark = document.createElement('section');
   benchmark.className='panel';
   benchmark.setAttribute('aria-label','本番校正10回');
-  benchmark.innerHTML='<span class="tag">v15 · 公式公開過去問の出題形式準拠</span><h2 style="margin-top:12px">本番80%への積み上げ</h2><p>本番と同じ40問・60分。10回400問を重複なしで実施し、直近3回と分野別の安定性で到達度を確認します。</p><p><a class="primary" style="display:inline-block;text-decoration:none" href="./benchmark.html">本番校正ダッシュボード →</a></p><p class="muted">第18・20・22・26回と公式サンプルに見られる、同一テーマの記述判定・組合せ・事例選択・計算を混在させた独自問題です。本番得点そのものを保証する表示はしません。</p>';
+  benchmark.innerHTML='<span class="tag">v15.6 · 公式公開過去問の出題形式準拠</span><h2 style="margin-top:12px">本番80%への積み上げ</h2><p>本番と同じ40問・60分。10回400問を重複なしで実施し、直近3回と分野別の安定性で到達度を確認します。</p><p><a class="primary" style="display:inline-block;text-decoration:none" href="./benchmark.html">本番校正ダッシュボード →</a></p><p class="muted">第18・20・22・26回と公式サンプルに見られる、同一テーマの記述判定・組合せ・事例選択・計算を混在させた独自問題です。本番得点そのものを保証する表示はしません。</p>';
   main.append(benchmark,launch,previous);
 }
 function setTextIfChanged(el,text){if(el.textContent!==text)el.textContent=text;}

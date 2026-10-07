@@ -146,6 +146,17 @@ try:
         qbox=quick.bounding_box()
         assert qbox and qbox['x']>=0 and qbox['x']+qbox['width']<=320
         passed('main app quick display toggle fits on 320px mobile header')
+        page.set_viewport_size({'width':390,'height':844})
+        page.locator('[data-action="nav"][data-route="settings"]').click()
+        page.get_by_role('heading',name='アプリのバージョン').wait_for()
+        panel=page.locator('.version-panel')
+        assert 'v15.6' in panel.inner_text()
+        page.get_by_role('button',name='最新版を確認').click()
+        page.get_by_text('最新版です',exact=True).wait_for()
+        text_now=panel.inner_text()
+        assert '現在' in text_now and 'v15.6' in text_now and '公開中' in text_now
+        passed('version panel proves the currently loaded build and latest published version')
+        page.set_viewport_size({'width':320,'height':700})
         page.evaluate("""()=>{
           const m=document.querySelector('main#main');
           const s=document.createElement('section');s.className='notice update-notice';
@@ -176,7 +187,7 @@ try:
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
         passed('existing homepage launches continuous dojo while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-5-20261007');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-6-20261007');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
