@@ -43,7 +43,7 @@ function save() {
     const next=JSON.stringify(state); localStorage.setItem(KEY,next); lastRaw=next; return true;
   } catch { blocked=true; storageError='端末への保存に失敗しました。履歴はこの画面にあります。JSONを書き出して保管してください。'; return false; }
 }
-function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v15.1 · 連続演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
+function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v15.2 · 教科書解説つき連続演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
 function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('連続演習','home')}${btn('学習記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
 function metric(n,label) {return `<div class="metric"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function ratio(x) {return x.total?`${x.correct}/${x.total}`:'—';}
