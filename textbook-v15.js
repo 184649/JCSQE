@@ -354,8 +354,10 @@ function optionNote(q,index){
         : [base,`「${option.term}」は、${option.definition}`,`今回必要なのは「${target.term}」＝${target.definition}。したがって、同じ分野でも目的・対象がずれる。`];
     }
   }
-  if(q.type==='same-topic-statement'&&index!==q.correct){
-    return [base,...statementDiagnosis(q.options?.[index])];
+  if(q.type==='same-topic-statement'){
+    const target=targetsFor(q)[0];
+    if(index===q.correct)return [base,target?`正しい定義の核は「${target.definition}」。この選択肢はその対象・目的・範囲と矛盾しない。`:''];
+    return [base,target?`判断基準に戻すと、「${target.term}」は「${target.definition}」。誤答は、この定義の対象・目的・適用範囲のどれかを狭め過ぎる、広げ過ぎる、または別概念と入れ替えている。`:'',...statementDiagnosis(q.options?.[index])];
   }
   if(q.type==='multi-blank'){
     return [base,'空欄ごとに定義へ照合し、1枠でも違えばその組合せは不適切。選択肢全体の雰囲気ではなく、各枠を独立して判定する。'];
