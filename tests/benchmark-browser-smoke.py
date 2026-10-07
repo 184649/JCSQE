@@ -38,8 +38,12 @@ try:
     page.locator('.result-score').wait_for()
     assert page.locator('.result-question').count()==40
     page.locator('.result-question').first.click()
-    assert page.locator('.explain-box').count()>=4
-    ok('submitted form reveals detailed per-option explanations')
+    assert page.locator('.benchmark-textbook').count()>=1
+    assert page.get_by_role('heading',name='1. 分野の全体像').count()>=1
+    assert page.get_by_role('heading',name='5. 似た概念との比較').count()>=1
+    assert page.get_by_role('heading',name='6. 4択を1つずつ検証').count()>=1
+    assert page.locator('.textbook-option').count()>=4
+    ok('submitted form reveals textbook-level explanations')
     page.locator('[data-act="home"]').click()
     assert page.get_by_text('1/10',exact=True).count()>=1
     assert page.get_by_text('40/400',exact=True).count()>=1
