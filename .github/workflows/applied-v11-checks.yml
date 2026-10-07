@@ -6,7 +6,9 @@ on:
       - 'applied.css'
       - 'practice.html'
       - 'practice-bank-v15.js'
+      - 'textbook-v15.js'
       - 'tests/continuous-practice*'
+      - 'tests/textbook*'
       - 'index.html'
       - 'sw.js'
       - 'tests/applied*'
@@ -18,6 +20,10 @@ on:
       - 'applied-*'
       - 'applied.css'
       - 'practice.html'
+      - 'practice-bank-v15.js'
+      - 'textbook-v15.js'
+      - 'tests/continuous-practice*'
+      - 'tests/textbook*'
       - 'index.html'
       - 'sw.js'
       - 'tests/applied*'
@@ -44,6 +50,7 @@ jobs:
           node --check applied-hard-overrides.js
           node --check applied-explanation-guide.js
           node --check practice-bank-v15.js
+          node --check textbook-v15.js
           node --check benchmark-bank.js
           node --check benchmark-engine.js
           node --check benchmark-ui.js

@@ -222,13 +222,19 @@ for(let i=0;i<multiCandidates.length;i++){
  const q=multiCandidates[i],cs=chooseFour(q,i+3),terms=cs.map(x=>x.term);
  const perms=[[0,1,2,3],[1,0,3,2],[2,3,0,1],[3,2,1,0]];
  const combos=perms.map(p=>p.map((n,j)=>`(${j+1})${terms[n]}`).join(' / '));
+ const comboReasons=perms.map((p,pi)=>{
+   if(pi===0)return `4枠すべて正しい。\n${cs.map((x,j)=>`（${j+1}）${x.term}：${x.definition}`).join(' ')}`;
+   const diffs=[];
+   for(let j=0;j<4;j++)if(p[j]!==j)diffs.push(`（${j+1}）は「${terms[p[j]]}」ではなく「${terms[j]}」。${cs[j].definition}`);
+   return diffs.join(' ');
+ });
  const shift=i%4,o=rotateChoice(combos,0,shift);
  qs.push({id:id(),type:'multi-blank',targetConceptIds:cs.map(x=>x.id),chapter:q.chapter,family:q.family,level:q.level,syllabus:q.syllabus,
   text:`次の（1）～（4）の説明に対応する用語の組合せとして、もっとも適切なものを選べ。\n\n${cs.map((x,j)=>`（${j+1}）${needFrom(x.definition)}`).join('\n')}`,
   options:o.options,correct:o.correct,
-  brief:'4つの近接概念を同時に区別する。各選択肢は4枠すべての対応が異なる。',
-  detail:`正しい対応は ${terms.map((t,j)=>`（${j+1}）${t}`).join('、')}。`,
-  reasons:o.options.map(x=>x===combos[0]?'4つすべての対応が正しい。':`少なくとも2つ以上の対応が入れ替わっている。正しくは ${terms.map((t,j)=>`（${j+1}）${t}`).join('、')}。`)});
+  brief:'4つの近接概念を同時に区別する。1枠ずつ定義へ照合してから組合せを選ぶ。',
+  detail:`正しい対応は ${terms.map((t,j)=>`（${j+1}）${t}`).join('、')}。各枠を独立して確定すると、選択肢の並びに引っ張られにくい。`,
+  reasons:o.options.map(x=>comboReasons[combos.indexOf(x)])});
 }
 
 // B. 80 same-topic statement questions.
@@ -259,7 +265,9 @@ for(let i=0;i<scenarioTargets.length;i++){
   options:o.options,correct:o.correct,
   brief:`目的を先に読み、${q.term}と近接概念の適用範囲を比較する。`,
   detail:`設問の目的は「${q.definition}」に対応するため、${q.term}が最も直接的。`,
-  reasons:o.options.map(t=>t===q.term?`${q.term}は設問の目的・対象に直接一致する。`:`${t}も同じ分野に関連するが、設問が求める目的・対象とは異なる。`)});
+  reasons:o.options.map(t=>{const x=cs.find(z=>z.term===t);return t===q.term
+    ?`${q.term}は「${q.definition}」という概念で、設問の目的・対象に直接一致する。`
+    :`${t}は「${x?.definition||'別の目的・対象を扱う概念'}」。一方、この設問が求めているのは「${q.definition}」なので、使う場面・対象・目的のいずれかが一致しない。`;})});
 }
 const add=x=>qs.push({...x,id:id(),type:'applied'});
 const four=(fn)=>{for(let v=0;v<4;v++)add(fn(v));};

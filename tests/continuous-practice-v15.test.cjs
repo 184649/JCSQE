@@ -55,5 +55,5 @@ test('practice UI exposes one start action and no count selector',()=>{
  assert(!ui.includes('data-count='));
  assert(!ui.includes('[3,5,10]'));
  assert(html.includes('practice-bank-v15.js?v=15.1'));
- assert(html.includes('benchmark-bank.js?v=15.0'));
+ assert(html.includes('benchmark-bank.js?v=15.2'));
 });

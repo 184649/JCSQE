@@ -1,7 +1,7 @@
 /* Static UI. Shared profile storage is preserved; only appliedStudy is added. */
 (() => {
 'use strict';
-const E = window.JCSQEApplied, B = E.bank(window.JCSQEAppliedBank), G = window.JCSQEExplanationGuide || {};
+const E = window.JCSQEApplied, B = E.bank(window.JCSQEAppliedBank), G = window.JCSQEExplanationGuide || {}, T = window.JCSQETextbook || null;
 const DEMO = document.body.dataset.demo === 'true';
 const KEY = DEMO ? 'jcsqe-v11-preview-state' : 'jcsqe-shokyu-state-v3';
 const $ = s => document.querySelector(s), rootEl = $('#applied-app'), letters = 'ABCD';
@@ -43,7 +43,7 @@ function save() {
     const next=JSON.stringify(state); localStorage.setItem(KEY,next); lastRaw=next; return true;
   } catch { blocked=true; storageError='端末への保存に失敗しました。履歴はこの画面にあります。JSONを書き出して保管してください。'; return false; }
 }
-function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v15.1 · 連続演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
+function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v15.2 · 教科書解説つき連続演習 · 端末内保存${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme')}</header>`; }
 function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('連続演習','home')}${btn('学習記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
 function metric(n,label) {return `<div class="metric"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function ratio(x) {return x.total?`${x.correct}/${x.total}`:'—';}
@@ -83,32 +83,35 @@ function home() {
   <section class="panel"><h2>学習履歴</h2><p>回答は1問ごとに自動保存します。未回答・弱点・復習時期を履歴から判断し、次の出題へ反映します。</p><p>${btn('学習記録を見る','history')}</p></section>
   <section class="panel"><h2>本番校正</h2><p>本番形式だけは実試験に合わせて40問・60分です。通常の連続演習とは別に実施します。</p><p><a class="button primary" href="./benchmark.html">本番校正ダッシュボード →</a></p></section>`;
 }
+function textbookExplanation(q, selected, order){
+  if(!T)return '';
+  const l=T.lesson(q),targetTerms=l.targets.map(x=>x.term),related=l.related||[];
+  const conceptRows=related.map(x=>`<tr class="${targetTerms.includes(x.term)?'target-row':''}"><td><b>${esc(x.term)}</b><br><small>${esc(x.level)} / ${esc(x.syllabus)}</small></td><td>${esc(x.definition)}</td></tr>`).join('');
+  const optionRows=order.map((n,i)=>{
+    const notes=T.optionNote(q,n).filter(Boolean);
+    return `<div class="textbook-option ${n===q.correct?'correct':'wrong'} ${n===selected?'selected':''}"><div class="reason-head"><b>${letters[i]}. ${esc(q.options[n])}</b><span class="verdict">${n===q.correct?'○ 正解':'× 誤り'}</span></div>${notes.map((x,j)=>`<p>${j===0?'<b>判定理由：</b>':''}${esc(x)}</p>`).join('')}</div>`;
+  }).join('');
+  const targets=l.targets.length?l.targets.map(x=>`<li><b>${esc(x.term)}</b>：${esc(x.definition)}</li>`).join(''):`<li><b>${esc(q.family||q.chapter)}</b>の目的・判断基準を理解する。</li>`;
+  return `<details class="deep textbook-deep" open><summary>教科書解説</summary><div class="body textbook-body">
+    <div class="textbook-title"><span>TEXTBOOK</span><h3>${esc(q.family||q.chapter)}｜この1問から周辺知識まで理解する</h3></div>
+    <section class="textbook-section"><h4>1. まず、この分野を理解する</h4><p>${esc(l.chapter.overview)}</p><p>${esc(l.family.overview)}</p></section>
+    <section class="textbook-section"><h4>2. このテーマの定義</h4><ul class="textbook-definition">${targets}</ul><p><b>比較するときの軸：</b>${esc(l.family.compare||l.chapter.axis)}</p></section>
+    <section class="textbook-section"><h4>3. 問題文をどう読むか</h4><p><b>${esc(l.type.title)}</b></p><ol class="decision-steps">${l.type.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p class="textbook-tip"><b>試験での注意：</b>${esc(l.type.tip)} ${esc(l.chapter.exam||'')}</p></section>
+    <section class="textbook-section"><h4>4. 今回の問題へ当てはめる</h4><p><b>決め手：</b>${esc(q.brief)}</p><p>${esc(q.detail)}</p></section>
+    <section class="textbook-section"><h4>5. 似た概念を表で整理する</h4><div class="table-wrap"><table class="textbook-table"><thead><tr><th>用語</th><th>意味・使う場面</th></tr></thead><tbody>${conceptRows}</tbody></table></div></section>
+    <section class="textbook-section"><h4>6. 4択を1つずつ検証する</h4>${optionRows}</section>
+    <section class="textbook-section"><h4>7. よくある取り違え</h4><p>${esc(l.family.trap||l.chapter.exam)}</p></section>
+    <section class="textbook-section textbook-summary"><h4>8. この問題から持ち帰ること</h4><p>正解記号ではなく、<b>「何を対象に、何のために使う概念か」</b>を説明できる状態にする。次に同じテーマが別事例で出ても、定義と比較軸から判断する。</p><p class="muted">公式シラバス項目 ${esc(l.syllabus)} / ${esc(l.level)}。この解説は公式シラバスを範囲基準にした学習用テキストで、公式問題の解説そのものではありません。</p><p><a href="${esc(l.source)}" target="_blank" rel="noopener noreferrer">公式シラバス Ver.3.0 を確認</a></p></section>
+  </div></details>`;
+}
 function feedback(q, selected, order, confidence) {
   const letter=letters[order.indexOf(q.correct)];
   const selectedLabel=Number.isInteger(selected)?`${letters[order.indexOf(selected)]}. ${q.options[selected]}`:'分からない／未回答';
   const status=selected===q.correct?'正解':'ここを確認';
-  const guide=G[q.topicKey]||{};
-  const selectedWrong=Number.isInteger(selected)&&selected!==q.correct;
-  const calc=q.calculation?`<div class="explain-step calculation"><h3>計算で確かめる</h3><p><code>${esc(q.calculation.expression)}</code> ＝ <b>${esc(q.calculation.value)}${esc(q.calculation.unit||'')}</b></p><p>この値だけ暗記せず、どの数を分子・分母に置いたか、何回で平均したか、単位がそろっているかを確認します。</p></div>`:'';
-  const selectedAnalysis=selectedWrong?`<div class="explain-step selected-choice-analysis"><h3>あなたの選択肢が誤りになる決定的理由</h3>
-    <p class="choice-quote"><b>${esc(q.options[selected])}</b></p>
-    ${guide.trap?`<p><b>なぜ迷いやすいか：</b>${esc(guide.trap)}</p>`:''}
-    <p><b>この問題では成立しない理由：</b>${esc(q.reasons[selected])}</p>
-    <p><b>正解との直接比較：</b>正解は「${esc(q.options[q.correct])}」。${esc(q.reasons[q.correct])}</p>
-    ${guide.rule?`<p><b>境界線：</b>${esc(guide.rule)}</p>`:''}
-    </div>`:
-    confidence==='unknown'||!Number.isInteger(selected)?`<div class="explain-step selected-choice-analysis"><h3>迷ったときの判断基準</h3><p>${esc(guide.rule||q.distinction||q.brief)}</p></div>`:'';
-  const steps=Array.isArray(guide.steps)&&guide.steps.length?`<ol class="decision-steps">${guide.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:'';
-  return `<section class="panel feedback ${selected===q.correct?'':'incorrect'}" tabindex="-1" aria-live="polite"><h2>${status}</h2><p class="result-answer">正解：<b>${letter}. ${esc(q.options[q.correct])}</b><br>あなたの回答：${esc(selectedLabel)}</p><div class="brief"><b>まず覚えるポイント</b><p>${esc(q.brief)}</p></div>
-  <details class="deep"><summary>${selected===q.correct?'詳細な解説を見る':'詳細な解説を見る（推奨）'}</summary><div class="body">
-  ${selectedAnalysis}
-  <div class="explain-step judgement-rule"><h3>1. まず使う判定基準</h3><p>${esc(guide.rule||q.distinction||q.brief)}</p>${steps}</div>
-  <div class="explain-step"><h3>2. この問題文へ当てはめる</h3><p>${esc(q.detail)}</p></div>
-  ${calc}
-  ${q.distinction?`<div class="explain-step distinction"><h3>3. 似た概念との境界</h3><p>${esc(q.distinction)}</p></div>`:''}
-  <div class="explain-step"><h3>4. 4択を同じ基準で検証</h3>${order.map((n,i)=>`<div class="reason ${n===q.correct?'reason-correct':'reason-wrong'} ${n===selected?'reason-selected':''}"><div class="reason-head"><b>${letters[i]}. ${esc(q.options[n])}</b><span class="verdict">${n===q.correct?'○ 正解':'× 誤り'}</span></div><p><b>${n===q.correct?'成立する理由':'成立しない理由'}：</b>${esc(q.reasons[n])}</p>${n!==q.correct&&guide.rule?`<p class="muted"><b>正しく選ぶには：</b>この選択肢の文言ではなく、問題文が「${esc(guide.rule)}」のどちら側かを確認します。</p>`:''}</div>`).join('')}</div>
-  <div class="explain-step exam-check"><h3>5. 納得できたかの確認</h3><p>正解記号を覚えるのではなく、<b>「なぜ自分の選択肢ではなく正解なのか」</b>を問題文の条件を使って説明できるか確認してください。説明できなければ、この問題は正解しても定着扱いにしません。</p></div>
-  <p class="muted">${esc(q.topic)} / 公式シラバス項目 ${esc(q.syllabus)} / 項目の知識レベル ${esc(q.level)}。独自問題であり、公式問題と同一難易度を保証するものではありません。</p><p class="reference"><a href="${esc(q.source)}" target="_blank" rel="noopener noreferrer">公式シラバス（範囲の参照）</a></p>${(q.references||[]).filter(r=>String(r.url).startsWith('https://')).map(r=>`<p class="reference"><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.label)}</a></p>`).join('')}</div></details></section>`;
+  return `<section class="panel feedback ${selected===q.correct?'':'incorrect'}" tabindex="-1" aria-live="polite"><h2>${status}</h2><p class="result-answer">正解：<b>${letter}. ${esc(q.options[q.correct])}</b><br>あなたの回答：${esc(selectedLabel)}</p>
+  <div class="brief"><b>この問題の結論</b><p>${esc(q.brief)}</p></div>
+  ${textbookExplanation(q,selected,order)}
+  </section>`;
 }
 function quiz() {
   const v=E.view(p()); if (!v) {route='home';return home();}
