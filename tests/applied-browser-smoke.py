@@ -62,11 +62,13 @@ try:
         wrong=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];const q=s.snapshots[id];return [0,1,2,3].find(x=>x!==q.correct)}''',KEY)
         page.locator(f'[data-act="answer"][data-choice="{wrong}"]').click()
         page.locator('.feedback').wait_for()
-        page.locator('.deep>summary').click()
-        assert page.locator('.reason').count()==4
-        assert page.get_by_role('heading',name='あなたの選択肢が誤りになる決定的理由').count()==1
-        assert page.get_by_text('正解との直接比較：',exact=False).count()>=1
-        passed('continuous dojo gives detailed feedback after each answer')
+        assert page.locator('.textbook-deep[open]').count()==1
+        assert page.get_by_role('heading',name='1. まず、この分野を理解する').count()==1
+        assert page.get_by_role('heading',name='5. 似た概念を表で整理する').count()==1
+        assert page.get_by_role('heading',name='6. 4択を1つずつ検証する').count()==1
+        assert page.locator('.textbook-option').count()==4
+        assert page.locator('.textbook-table tbody tr').count()>=1
+        passed('continuous dojo gives textbook-level feedback after each answer')
 
         first_id=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;return s.questionIds[s.index]}''',KEY)
         page.locator('[data-act="continuous-next"]').click()
