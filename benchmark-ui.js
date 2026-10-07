@@ -12,7 +12,7 @@ function load(){const raw=localStorage.getItem(KEY);lastRaw=raw;if(raw){state=sa
 function save(){const remote=localStorage.getItem(KEY);if(remote!==lastRaw){toast('別タブで履歴が更新されました。再読み込みしてください。');return false;}state.updatedAt=Date.now();const next=JSON.stringify(state);localStorage.setItem(KEY,next);lastRaw=next;return true;}
 function p(){return state.profiles[state.activeProfileId];}
 function button(label,act,extra='',primary=false){return `<button data-act="${act}" ${extra} class="${primary?'primary':''}">${label}</button>`;}
-function toolbar(){return `<header><a class="brand" href="./index.html" style="text-decoration:none;color:inherit">JCSQE〜初級〜<small>v15.3 · 本番校正</small></a>${button('表示切替','theme','aria-label="ライト／ダーク表示を切り替え"')}</header>`;}
+function toolbar(){return `<header><a class="brand" href="./index.html" style="text-decoration:none;color:inherit">JCSQE〜初級〜<small>v15.6 · 本番校正</small></a>${button('表示切替','theme','aria-label="ライト／ダーク表示を切り替え"')}</header>`;}
 function metric(n,label){return `<div class="progress-stat"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function badge(n,label,done){return `<span class="milestone ${done?'on':''}">${done?'✓':'○'} ${esc(label)}</span>`;}
 function active(){return E.active(p());}
@@ -29,7 +29,7 @@ function home(){
  }).join('');
  const activePanel=st.active?`<section class="panel"><h2>途中の本番演習</h2><p>第${st.active.form}回　${st.active.index+1}/40問</p><p class="muted">中断しても60分の時計は進みます。</p><div class="row">${button('再開','resume','',true)}${button('終了して採点','finish')}</div></section>`:'';
  return `<main class="benchmark-shell">
- <section class="benchmark-hero"><span class="tag">v15.2 · 公式公開過去問形式＋教科書解説</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
+ <section class="benchmark-hero"><span class="tag">v15.6 · 公式公開過去問形式＋教科書解説</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
  ${activePanel}
  ${planned}
  <section class="readiness-card ${r.stable80?'ready':''}"><div class="readiness-title">${esc(r.label)}</div><p>${esc(r.description)}</p>
