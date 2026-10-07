@@ -146,6 +146,17 @@ try:
         qbox=quick.bounding_box()
         assert qbox and qbox['x']>=0 and qbox['x']+qbox['width']<=320
         passed('main app quick display toggle fits on 320px mobile header')
+        page.evaluate("""()=>{
+          const m=document.querySelector('main#main');
+          const s=document.createElement('section');s.className='notice update-notice';
+          s.innerHTML='<b>最新版を取得しました</b><p>更新できます。</p><button class="primary">今すぐ更新</button>';
+          m.prepend(s);
+        }""")
+        update_box=page.locator('.update-notice .primary').bounding_box()
+        nav_box_now=page.locator('nav.nav').bounding_box()
+        assert update_box and update_box['x']>=0 and update_box['x']+update_box['width']<=320
+        assert nav_box_now and update_box['y']+update_box['height']<nav_box_now['y']
+        passed('update controls fit safely above the bottom nav')
         main_box=page.locator('main#main').bounding_box()
         nav_box=page.locator('nav.nav').bounding_box()
         assert main_box and nav_box and main_box['y']+main_box['height']<=nav_box['y']+1
@@ -165,7 +176,7 @@ try:
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
         passed('existing homepage launches continuous dojo while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-4-20261007');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-5-20261007');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
