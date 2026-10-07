@@ -44,6 +44,7 @@ function save() {
   } catch { blocked=true; storageError='端末への保存に失敗しました。履歴はこの画面にあります。JSONを書き出して保管してください。'; return false; }
 }
 function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v15.3 · スマホ最適化 · 教科書解説つき${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme','aria-label="ライト／ダーク表示を切り替え"')}</header>`; }
+function scrollPageTop(){const m=rootEl.querySelector('main');if(m){m.scrollTo({top:0,left:0,behavior:'auto'});}else scrollPageTop();}
 function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('連続演習','home')}${btn('学習記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
 function metric(n,label) {return `<div class="metric"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function ratio(x) {return x.total?`${x.correct}/${x.total}`:'—';}
@@ -160,7 +161,7 @@ function render() {
     const tick=()=>{if(expire()){render();return;}const s=E.active(p());const el=$('#exam-timer');if(s&&el){const seconds=Math.max(0,Math.ceil((s.durationMs-(Date.now()-s.startedAt))/1000));el.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');}};tick();interval=setInterval(tick,1000);
   }
 }
-function navigate(r) {route=r;render();window.scrollTo(0,0);}
+function navigate(r) {route=r;render();scrollPageTop();}
 function exportData() {
   const payload={app:'JCSQE〜初級〜',version:7,exportedAt:new Date().toISOString(),profile:p()};
   download('jcsqe-v11-profile.json',JSON.stringify(payload,null,2));
@@ -194,13 +195,13 @@ async function handle(el) {
   if (act==='continuous-next') {
     const next=E.continuePractice(B,p());
     if(!next.session){toast(next.warning||'次の問題を作成できませんでした。');return;}
-    save();render();window.scrollTo(0,0);return;
+    save();render();scrollPageTop();return;
   }
   if (act==='next'||act==='previous'||act==='jump') {
     const s=E.active(p()); if(!s)return;
     let index=act==='next'?s.index+1:act==='previous'?s.index-1:Number(el.dataset.index);
     if(index>=s.questionIds.length){if(s.kind==='mock'&&!confirm('終了して採点しますか？未回答は不正解として扱います。'))return;currentResult=finishCurrent();save();navigate('result');return;}
-    E.go(p(),index);save();render();window.scrollTo(0,0);return;
+    E.go(p(),index);save();render();scrollPageTop();return;
   }
   if (act==='finish-early') {const s=E.active(p());if(!s)return;if(!confirm('ここまでで終了しますか？未回答も不正解として記録します。途中データを勝手に別問題へ置き換えません。'))return;currentResult=finishCurrent();save();navigate('result');return;}
   if (act==='bookmark'){const q=E.current(p()).q;if(q){E.bookmark(p(),q.id);save();render();}return;}

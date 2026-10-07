@@ -46,3 +46,16 @@
 /* mobile sticky header */
 @media(max-width:560px){header{padding:calc(8px + env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 7px max(12px,env(safe-area-inset-left));gap:8px}.brand{font-size:14px;gap:8px}.brand img{width:30px;height:30px}.brand small{font-size:10px;max-width:46vw}.status-dot{display:none}.header-theme{min-width:76px;padding:7px 9px;font-size:12px}}
 @media(max-width:360px){.brand small{max-width:40vw}.header-theme{min-width:72px;padding-left:7px;padding-right:7px}}
+
+/* v15.4 viewport-safe app shell */
+html,body{height:100%}
+#app{height:100dvh;min-height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+#app>header{position:relative;top:auto;max-width:none;width:100%}
+#app>main{min-height:0;height:100%;width:100%;margin:0 auto;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding-bottom:28px;scroll-padding-bottom:28px}
+#app>.nav{position:relative;bottom:auto;left:auto;right:auto;width:100%;z-index:30;box-shadow:0 -6px 25px #0002;flex:0 0 auto}
+@media(max-width:560px){
+  #app>main{padding-bottom:24px;scroll-padding-bottom:24px}
+  #app>.nav{padding-top:5px;padding-bottom:max(5px,env(safe-area-inset-bottom))}
+  #app>.nav button{min-height:42px;font-size:10px;padding:2px}
+  #app>.nav span{font-size:19px}
+}

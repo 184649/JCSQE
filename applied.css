@@ -58,3 +58,14 @@
 
 /* mobile top toolbar visibility */
 @media(max-width:380px){.brand small{max-width:52vw}header>button{min-width:72px;padding-left:7px;padding-right:7px}}
+
+/* v15.4 viewport-safe practice shell */
+html,body{height:100%}
+#applied-app{height:100dvh;min-height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+#applied-app>header{position:relative;top:auto;max-width:none;width:100%}
+#applied-app>main{min-height:0;height:100%;width:100%;margin:0 auto;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding-bottom:24px;scroll-padding-bottom:24px}
+#applied-app>.nav{position:relative;bottom:auto;left:auto;right:auto;width:100%;z-index:30;box-shadow:0 -5px 20px #0002}
+@media(max-width:480px){
+  #applied-app>.nav{padding-top:6px;padding-bottom:max(6px,env(safe-area-inset-bottom))}
+  #applied-app>.nav a,#applied-app>.nav button{min-height:42px;padding:7px 6px;font-size:11px}
+}
