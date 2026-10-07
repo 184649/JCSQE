@@ -24,6 +24,21 @@ try:
     page.on('dialog',lambda d:d.accept())
     page.goto(base+'benchmark.html')
     page.get_by_text('本番80%への積み上げ').wait_for()
+    page.set_viewport_size({'width':320,'height':700})
+    theme_btn=page.get_by_role('button',name='ライト／ダーク表示を切り替え')
+    theme_btn.wait_for()
+    box=theme_btn.bounding_box()
+    assert box and box['x']>=0 and box['x']+box['width']<=320
+    before=page.locator('html').get_attribute('data-theme')
+    theme_btn.click()
+    after=page.locator('html').get_attribute('data-theme')
+    assert before!=after
+    page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+    page.wait_for_timeout(100)
+    box=theme_btn.bounding_box()
+    assert box and box['y']>=0 and box['y']<110
+    ok('benchmark display toggle stays visible at 320px width and while scrolling')
+    page.set_viewport_size({'width':390,'height':844})
     assert page.get_by_text('0/10',exact=True).count()>=1
     assert page.get_by_text('0/400',exact=True).count()>=1
     ok('benchmark dashboard starts at 0/10 and 0/400')
@@ -58,7 +73,7 @@ try:
     page.get_by_role('heading',name='本番校正 第2回').wait_for()
     ok('scheduled plan deep-links to exact benchmark form')
     page.wait_for_function('!!navigator.serviceWorker.controller',timeout=30000)
-    assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-2-20261007');return !!(await c.match('./benchmark.html'));}")
+    assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-3-20261007');return !!(await c.match('./benchmark.html'));}")
     ctx.set_offline(True);page.reload();page.get_by_text('本番80%への積み上げ').wait_for()
     ok('benchmark page reloads offline from v15 cache')
     assert not errors,errors
