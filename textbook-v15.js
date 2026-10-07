@@ -346,6 +346,8 @@ function optionNote(q,index){
   return [base];
 }
 function optionConcept(q,index){
+  const text=String(q.options?.[index]||'');
+  for(const id of q.optionConceptIds||[]){const concept=byId.get(id);if(concept&&concept.term===text)return concept;}
   const id=(q.optionConceptIds||[])[index];
   return id?byId.get(id):null;
 }
