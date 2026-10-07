@@ -1,7 +1,7 @@
 /* Scoped cache: never delete caches belonging to other GitHub Pages apps. */
-const CACHE='jcsqe-shokyu-v15-4-20261007';
-const ASSETS=['./practice.html','./benchmark.html','./benchmark.css?v=15.0','./benchmark-bank.js?v=15.2','./benchmark-engine.js?v=15.0','./textbook-v15.js?v=15.2','./benchmark-ui.js?v=15.3','./applied.css?v=15.4','./practice-bank-v15.js?v=15.1','./applied-engine.js?v=15.1','./applied-explanation-guide.js?v=12.2','./applied-ui.js?v=15.4','./applied-entry.js?v=15.2','./index.html','./study.css?v=15.4','./questions.js?v=4','./supplement.js?v=7','./syllabus-course.js?v=9','./course-engine.js?v=9','./dojo-engine.js?v=9','./study-core.js?v=9','./study-app.js?v=15.4','./manifest.webmanifest?v=10','./icon-192.png','./icon-512.png'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
+const CACHE='jcsqe-shokyu-v15-5-20261007';
+const ASSETS=['./practice.html','./benchmark.html','./benchmark.css?v=15.0','./benchmark-bank.js?v=15.2','./benchmark-engine.js?v=15.0','./textbook-v15.js?v=15.2','./benchmark-ui.js?v=15.3','./applied.css?v=15.4','./practice-bank-v15.js?v=15.1','./applied-engine.js?v=15.1','./applied-explanation-guide.js?v=12.2','./applied-ui.js?v=15.4','./applied-entry.js?v=15.2','./index.html','./study.css?v=15.5','./questions.js?v=4','./supplement.js?v=7','./syllabus-course.js?v=9','./course-engine.js?v=9','./dojo-engine.js?v=9','./study-core.js?v=9','./study-app.js?v=15.5','./manifest.webmanifest?v=10','./icon-192.png','./icon-512.png'];
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('jcsqe-shokyu-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
