@@ -62,6 +62,14 @@ try:
         box=theme_btn.bounding_box()
         assert box and box['y']>=0 and box['y']<110
         passed('practice display toggle stays visible at 320px width and while scrolling')
+        pmain=page.locator('#applied-app > main').bounding_box()
+        pnav=page.locator('#applied-app > nav.nav').bounding_box()
+        assert pmain and pnav and pmain['y']+pmain['height']<=pnav['y']+1
+        page.locator('#applied-app > main').evaluate('(el)=>{el.scrollTop=el.scrollHeight}')
+        page.wait_for_timeout(100)
+        plast=page.locator('#applied-app > main > *').last.bounding_box()
+        assert plast and plast['y']+plast['height']<=pnav['y']+1
+        passed('practice bottom nav occupies its own row without covering content')
         page.set_viewport_size({'width':390,'height':844})
         assert page.locator('[data-act="start-continuous"]').count()==1
         assert page.locator('[data-count]').count()==0
@@ -138,6 +146,15 @@ try:
         qbox=quick.bounding_box()
         assert qbox and qbox['x']>=0 and qbox['x']+qbox['width']<=320
         passed('main app quick display toggle fits on 320px mobile header')
+        main_box=page.locator('main#main').bounding_box()
+        nav_box=page.locator('nav.nav').bounding_box()
+        assert main_box and nav_box and main_box['y']+main_box['height']<=nav_box['y']+1
+        page.locator('main#main').evaluate('(el)=>{el.scrollTop=el.scrollHeight}')
+        page.wait_for_timeout(100)
+        last=page.locator('main#main > *').last
+        last_box=last.bounding_box()
+        assert last_box and last_box['y']+last_box['height']<=nav_box['y']+1
+        passed('bottom nav occupies its own row and never covers the last home content')
         page.set_viewport_size({'width':390,'height':844})
         state=page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
         assert state['profiles']['fixture']['activeSession']==original['profiles']['fixture']['activeSession']
@@ -148,7 +165,7 @@ try:
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
         passed('existing homepage launches continuous dojo while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-3-20261007');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-4-20261007');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
