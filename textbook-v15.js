@@ -314,9 +314,40 @@ function lesson(q){
     source:'https://www.juse.jp/jcsqe/content/jcsqe_beginner_syllabus_ver_3_0.pdf'
   };
 }
+function statementDiagnosis(text){
+  const s=String(text||''),out=[];
+  if(/必ず|保証|欠陥が存在しない|一切/.test(s)) out.push('断定が強すぎる。管理モデル・認証・プロセスの良さは、個別成果物の完全無欠陥まで自動的に保証しない。');
+  if(/だけ|のみ|対象外|一律|限定/.test(s)) out.push('対象範囲を狭くし過ぎていないか確認する。品質活動は複数の目的・段階・特性を扱うことが多い。');
+  if(/一度.*確定|変更しない|見直さない/.test(s)) out.push('前提や要求、リスクが変われば計画・基準・管理策を見直す必要がある。固定化を正当化する記述は注意する。');
+  if(/省略|不要|行わない|確認しない/.test(s)) out.push('一つの仕組みや評価結果を理由に、別目的の確認活動まで不要とする飛躍がないかを見る。');
+  if(/発生後|事後|復旧だけ/.test(s)) out.push('予防・事前評価・設計段階の活動を除外していないか確認する。品質活動は事後対応だけに限定されない。');
+  if(/すべて.*移る|一任|丸投げ/.test(s)) out.push('作業を外部へ委ねても、発注側・管理側の品質責任や受入責任まで自動的に消えるわけではない。');
+  return out;
+}
+function optionNote(q,index){
+  const base=q.reasons?.[index]||'';
+  if(q.type==='scenario-selection'){
+    const option=optionConcept(q,index),target=targetsFor(q)[0];
+    if(option&&target){
+      return option.id===target.id
+        ? [base,`「${option.term}」の定義：${option.definition}`,`設問の中心：${target.definition}`]
+        : [base,`「${option.term}」は、${option.definition}`,`今回必要なのは「${target.term}」＝${target.definition}。したがって、同じ分野でも目的・対象がずれる。`];
+    }
+  }
+  if(q.type==='same-topic-statement'&&index!==q.correct){
+    return [base,...statementDiagnosis(q.options?.[index])];
+  }
+  if(q.type==='multi-blank'){
+    return [base,'空欄ごとに定義へ照合し、1枠でも違えばその組合せは不適切。選択肢全体の雰囲気ではなく、各枠を独立して判定する。'];
+  }
+  if(q.type==='applied'){
+    return [base,'この選択肢が生まれる計算・条件の取り違えも確認する。答えだけでなく、分母・境界・真偽条件・対象を定義へ戻して検算する。'];
+  }
+  return [base];
+}
 function optionConcept(q,index){
   const id=(q.optionConceptIds||[])[index];
   return id?byId.get(id):null;
 }
-return {lesson,optionConcept,byId,familyGuides,chapterGuides,typeGuides};
+return {lesson,optionConcept,optionNote,statementDiagnosis,byId,familyGuides,chapterGuides,typeGuides};
 });
