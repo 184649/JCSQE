@@ -12,6 +12,7 @@ function load(){const raw=localStorage.getItem(KEY);lastRaw=raw;if(raw){state=sa
 function save(){const remote=localStorage.getItem(KEY);if(remote!==lastRaw){toast('別タブで履歴が更新されました。再読み込みしてください。');return false;}state.updatedAt=Date.now();const next=JSON.stringify(state);localStorage.setItem(KEY,next);lastRaw=next;return true;}
 function p(){return state.profiles[state.activeProfileId];}
 function button(label,act,extra='',primary=false){return `<button data-act="${act}" ${extra} class="${primary?'primary':''}">${label}</button>`;}
+function toolbar(){return `<header><a class="brand" href="./index.html" style="text-decoration:none;color:inherit">JCSQE〜初級〜<small>v15.3 · 本番校正</small></a>${button('表示切替','theme','aria-label="ライト／ダーク表示を切り替え"')}</header>`;}
 function metric(n,label){return `<div class="progress-stat"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
 function badge(n,label,done){return `<span class="milestone ${done?'on':''}">${done?'✓':'○'} ${esc(label)}</span>`;}
 function active(){return E.active(p());}
@@ -100,11 +101,12 @@ function result(r){
 function format(sec){sec=Math.max(0,sec);return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;}
 function render(){
  clearInterval(timer);document.documentElement.dataset.theme=state.theme||'dark';
- root.innerHTML=route==='quiz'?quiz():route==='result'?result(selectedResult):home();
+ root.innerHTML=toolbar()+(route==='quiz'?quiz():route==='result'?result(selectedResult):home());
  if(route==='quiz'){timer=setInterval(()=>{const s=active();if(!s)return;const left=Math.max(0,Math.floor((s.durationMs-(Date.now()-s.startedAt))/1000));const t=document.getElementById('timer');if(t)t.textContent=format(left);if(left<=0){selectedResult=E.finish(B,p());save();route='result';render();}},1000);}
 }
 async function act(el){
  const a=el.dataset.act;
+ if(a==='theme'){state.theme=state.theme==='light'?'dark':'light';document.documentElement.dataset.theme=state.theme;save();render();return;}
  if(a==='home'){route='home';selectedResult=null;render();return;}
  if(a==='start'||a==='retake'){const form=Number(el.dataset.form||E.nextForm(p()));if(!form)return;if(!confirm(`第${form}回を開始します。40問・60分、途中解説なしです。`))return;E.start(B,p(),form);save();route='quiz';render();return;}
  if(a==='locked'){toast('前の回を完了すると開放されます。');return;}
