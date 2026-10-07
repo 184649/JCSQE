@@ -48,6 +48,21 @@ try:
         }''', KEY)
         page.goto(base+'practice.html')
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
+        page.set_viewport_size({'width':320,'height':700})
+        theme_btn=page.get_by_role('button',name='ライト／ダーク表示を切り替え')
+        theme_btn.wait_for()
+        box=theme_btn.bounding_box()
+        assert box and box['x']>=0 and box['x']+box['width']<=320
+        before=page.locator('html').get_attribute('data-theme')
+        theme_btn.click()
+        after=page.locator('html').get_attribute('data-theme')
+        assert before!=after
+        page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        page.wait_for_timeout(100)
+        box=theme_btn.bounding_box()
+        assert box and box['y']>=0 and box['y']<110
+        passed('practice display toggle stays visible at 320px width and while scrolling')
+        page.set_viewport_size({'width':390,'height':844})
         assert page.locator('[data-act="start-continuous"]').count()==1
         assert page.locator('[data-count]').count()==0
         assert page.get_by_text('0/400',exact=False).count()>=1
@@ -117,6 +132,13 @@ try:
         passed('study-plan card deep-links to the fixed benchmark form')
         page.goto(base+'index.html?legacy=1')
         page.wait_for_function("!!document.querySelector('main#main')")
+        page.set_viewport_size({'width':320,'height':700})
+        quick=page.get_by_role('button',name='ライト／ダーク表示を切り替え')
+        quick.wait_for()
+        qbox=quick.bounding_box()
+        assert qbox and qbox['x']>=0 and qbox['x']+qbox['width']<=320
+        passed('main app quick display toggle fits on 320px mobile header')
+        page.set_viewport_size({'width':390,'height':844})
         state=page.evaluate('key=>JSON.parse(localStorage.getItem(key))',KEY)
         assert state['profiles']['fixture']['activeSession']==original['profiles']['fixture']['activeSession']
         passed('old application migration retains new history and old active session')
@@ -126,7 +148,7 @@ try:
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
         passed('existing homepage launches continuous dojo while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-2-20261007');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-3-20261007');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
