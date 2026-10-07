@@ -54,7 +54,7 @@ try:
     page.get_by_role('heading',name='本番校正 第2回').wait_for()
     ok('scheduled plan deep-links to exact benchmark form')
     page.wait_for_function('!!navigator.serviceWorker.controller',timeout=30000)
-    assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-1-20261007');return !!(await c.match('./benchmark.html'));}")
+    assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-2-20261007');return !!(await c.match('./benchmark.html'));}")
     ctx.set_offline(True);page.reload();page.get_by_text('本番80%への積み上げ').wait_for()
     ok('benchmark page reloads offline from v15 cache')
     assert not errors,errors
