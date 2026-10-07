@@ -43,7 +43,7 @@ function save() {
     const next=JSON.stringify(state); localStorage.setItem(KEY,next); lastRaw=next; return true;
   } catch { blocked=true; storageError='端末への保存に失敗しました。履歴はこの画面にあります。JSONを書き出して保管してください。'; return false; }
 }
-function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v15.3 · スマホ最適化 · 教科書解説つき${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme','aria-label="ライト／ダーク表示を切り替え"')}</header>`; }
+function header() { return `<header><div class="brand">JCSQE〜初級〜<small>v15.6 · スマホ最適化 · 教科書解説つき${DEMO?' · 確認用デモ':''}</small></div>${btn('表示切替','theme','aria-label="ライト／ダーク表示を切り替え"')}</header>`; }
 function scrollPageTop(){const m=rootEl.querySelector('main');if(m){m.scrollTo({top:0,left:0,behavior:'auto'});}else scrollPageTop();}
 function navigation() { return `<nav class="nav" aria-label="主なメニュー">${btn('連続演習','home')}${btn('学習記録','history')}${DEMO?'':`<a class="button" href="./index.html?legacy=1">以前の学習・設定</a>`}</nav>`; }
 function metric(n,label) {return `<div class="metric"><strong>${esc(n)}</strong><span>${esc(label)}</span></div>`;}
