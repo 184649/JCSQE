@@ -1,7 +1,7 @@
 /* v15 benchmark UI */
 (() => {
 'use strict';
-const E=window.JCSQEBenchmark,B=E.bank(window.JCSQEBenchmarkBank),KEY='jcsqe-shokyu-state-v3';
+const E=window.JCSQEBenchmark,B=E.bank(window.JCSQEBenchmarkBank),T=window.JCSQETextbook||null,KEY='jcsqe-shokyu-state-v3';
 const root=document.getElementById('benchmark-app'),toastEl=document.getElementById('benchmark-toast'),letters='ABCD';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state,lastRaw=null,route='home',selectedResult=null,timer=null;
@@ -69,6 +69,24 @@ function quiz(){
  ${button('終了して採点','finish')}
  </main>`;
 }
+function benchmarkTextbook(q,order,selected){
+ if(!T)return '';
+ const l=T.lesson(q),targetTerms=l.targets.map(x=>x.term),related=l.related||[];
+ const rows=related.map(x=>`<tr class="${targetTerms.includes(x.term)?'target-row':''}"><td><b>${esc(x.term)}</b><br><small>${esc(x.level)} / ${esc(x.syllabus)}</small></td><td>${esc(x.definition)}</td></tr>`).join('');
+ const options=order.map((n,i)=>`<div class="textbook-option ${n===q.correct?'correct':'wrong'} ${n===selected?'selected':''}"><div class="reason-head"><b>${letters[i]}. ${esc(q.options[n])}</b><span class="verdict">${n===q.correct?'○ 正解':'× 誤り'}</span></div>${T.optionNote(q,n).filter(Boolean).map((x,j)=>`<p>${j===0?'<b>判定理由：</b>':''}${esc(x)}</p>`).join('')}</div>`).join('');
+ const targets=l.targets.length?l.targets.map(x=>`<li><b>${esc(x.term)}</b>：${esc(x.definition)}</li>`).join(''):`<li><b>${esc(q.family||q.chapter)}</b>の判断基準を理解する。</li>`;
+ return `<div class="textbook-body benchmark-textbook">
+  <div class="textbook-title"><span>TEXTBOOK</span><h3>${esc(q.family||q.chapter)}｜教科書解説</h3></div>
+  <section class="textbook-section"><h4>1. 分野の全体像</h4><p>${esc(l.chapter.overview)}</p><p>${esc(l.family.overview)}</p></section>
+  <section class="textbook-section"><h4>2. 定義を押さえる</h4><ul class="textbook-definition">${targets}</ul><p><b>比較軸：</b>${esc(l.family.compare||l.chapter.axis)}</p></section>
+  <section class="textbook-section"><h4>3. 本番での読み方</h4><p><b>${esc(l.type.title)}</b></p><ol class="decision-steps">${l.type.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p class="textbook-tip"><b>注意：</b>${esc(l.type.tip)} ${esc(l.chapter.exam||'')}</p></section>
+  <section class="textbook-section"><h4>4. この問題の決め手</h4><p><b>${esc(q.brief)}</b></p><p>${esc(q.detail)}</p></section>
+  <section class="textbook-section"><h4>5. 似た概念との比較</h4><div class="table-wrap"><table class="textbook-table"><thead><tr><th>用語</th><th>意味・使う場面</th></tr></thead><tbody>${rows}</tbody></table></div></section>
+  <section class="textbook-section"><h4>6. 4択を1つずつ検証</h4>${options}</section>
+  <section class="textbook-section"><h4>7. よくある誤り</h4><p>${esc(l.family.trap||l.chapter.exam)}</p></section>
+  <section class="textbook-section textbook-summary"><h4>8. 覚える要点</h4><p>正解記号ではなく、対象・目的・使う場面の違いを説明できる状態にする。同じテーマが別事例で出ても定義から判断する。</p><p class="muted">公式シラバス項目 ${esc(l.syllabus)} / ${esc(l.level)}。学習用解説であり、公式問題の解説そのものではありません。</p></section>
+ </div>`;
+}
 function result(r){
  if(!r)return '<main class="benchmark-shell"><p>結果がありません。</p></main>';
  const rd=E.readiness(p());
@@ -76,8 +94,8 @@ function result(r){
  <section class="readiness-card ${rd.stable80?'ready':''}"><div class="readiness-title">${esc(rd.label)}</div><p>${esc(rd.description)}</p></section>
  <div class="row">${button('ダッシュボードへ','home','',true)}${button('この回を再受験','retake',`data-form="${r.form}"`)}</div>
  <section class="panel"><h2>分野別</h2><div class="table-wrap"><table><thead><tr><th>分野</th><th>正解</th><th>正答率</th></tr></thead><tbody>${chapterRows(r.chapters)}</tbody></table></div></section>
- <section class="panel"><h2>40問の解説</h2><p class="muted">公式公開問題の解説と同じ考え方で、正解だけでなく各選択肢がなぜ成立／不成立かを確認します。</p>
- ${r.details.map((d,i)=>`<details class="result-question"><summary>${d.correct?'○':'×'} 問${i+1} ${esc(d.id)} ${d.selected===null?'?':''}</summary><div class="body"><p class="bench-question" style="font-size:15px">${esc(d.question.text)}</p><p><b>正解：</b>${letters[d.order.indexOf(d.question.correct)]}. ${esc(d.question.options[d.question.correct])}</p><div class="explain-box correct"><b>判断のポイント</b><p>${esc(d.question.brief)}</p><p>${esc(d.question.detail)}</p></div><div class="explain-grid">${d.order.map((n,j)=>`<div class="explain-box ${n===d.question.correct?'correct':'wrong'}"><b>${letters[j]}. ${esc(d.question.options[n])}　${n===d.question.correct?'○':'×'}</b><p>${esc(d.question.reasons[n])}</p></div>`).join('')}</div></div></details>`).join('')}</section></main>`;
+ <section class="panel"><h2>40問の教科書解説</h2><p class="muted">答え合わせではなく、その周辺テーマまで復習できる学習テキストとして確認します。</p>
+ ${r.details.map((d,i)=>`<details class="result-question" ${d.correct?'':'open'}><summary>${d.correct?'○':'×'} 問${i+1} ${esc(d.id)} ${d.selected===null?'?':''}</summary><div class="body"><p class="bench-question" style="font-size:15px">${esc(d.question.text)}</p><p><b>正解：</b>${letters[d.order.indexOf(d.question.correct)]}. ${esc(d.question.options[d.question.correct])}</p>${benchmarkTextbook(d.question,d.order,d.selected)}</div></details>`).join('')}</section></main>`;
 }
 function format(sec){sec=Math.max(0,sec);return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;}
 function render(){
