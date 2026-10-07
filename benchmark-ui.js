@@ -28,7 +28,7 @@ function home(){
  }).join('');
  const activePanel=st.active?`<section class="panel"><h2>途中の本番演習</h2><p>第${st.active.form}回　${st.active.index+1}/40問</p><p class="muted">中断しても60分の時計は進みます。</p><div class="row">${button('再開','resume','',true)}${button('終了して採点','finish')}</div></section>`:'';
  return `<main class="benchmark-shell">
- <section class="benchmark-hero"><span class="tag">v15 · 公式公開過去問の出題形式・難度アンカー準拠</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
+ <section class="benchmark-hero"><span class="tag">v15.2 · 公式公開過去問形式＋教科書解説</span><h1>${esc(profileName())}さんの<br><em>本番80%への積み上げ</em></h1><p>本番と同じ40問・60分。10回400問は問題IDを重複させません。</p></section>
  ${activePanel}
  ${planned}
  <section class="readiness-card ${r.stable80?'ready':''}"><div class="readiness-title">${esc(r.label)}</div><p>${esc(r.description)}</p>
