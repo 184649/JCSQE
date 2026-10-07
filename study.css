@@ -62,3 +62,17 @@ html,body{height:100%}
 
 .update-notice{position:relative;z-index:1;margin-top:6px}.update-notice .primary{width:100%;margin-top:10px}
 @media(max-width:560px){.header-tools{gap:5px}.header-theme,.header-update{min-width:68px;padding:6px 8px;font-size:11px}.update-notice{margin:4px 0 16px}}
+
+/* v15.6 explicit version status */
+.version-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}
+.version-grid>div{border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:12px;min-width:0}
+.version-grid span{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}
+.version-grid strong{display:block;font-size:17px;overflow-wrap:anywhere}
+.version-grid strong.good{color:var(--good)}.version-grid strong.warn{color:var(--brand)}
+#app{min-height:100svh;height:100dvh}
+@media(max-width:560px){
+ .version-grid{grid-template-columns:1fr}
+ .version-grid>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px}
+ .version-grid span{margin:0;font-size:11px}.version-grid strong{font-size:15px;text-align:right}
+ .version-panel .button-row>*{flex:1 1 100%}
+}
