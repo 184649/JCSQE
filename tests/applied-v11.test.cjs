@@ -104,7 +104,7 @@ test('new launcher retains legacy script URLs and scoped offline pages',()=>{
   assert(html.includes('study.css?v=10.2'));
   const practice=fs.readFileSync(path.join(root,'practice.html'),'utf8');assert(practice.includes('benchmark-bank.js?v=15.2'));assert(practice.includes('practice-bank-v15.js?v=15.1'));assert(practice.includes('applied-engine.js?v=15.1'));assert(practice.includes('applied-explanation-guide.js?v=12.2'));assert(practice.includes('textbook-v15.js?v=15.2'));assert(practice.includes('applied-ui.js?v=15.2'));
   const entry=fs.readFileSync(path.join(root,'applied-entry.js'),'utf8');assert(entry.includes('data-applied-plan-date'));assert(entry.includes('未実施・開始'));
-  const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');assert(ui.includes('plannedDate'));assert(ui.includes('あなたの選択肢が誤りになる決定的理由'));assert(ui.includes('正解との直接比較'));assert(ui.includes('4択を同じ基準で検証'));
+  const ui=fs.readFileSync(path.join(root,'applied-ui.js'),'utf8');assert(ui.includes('plannedDate'));assert(ui.includes('教科書解説'));assert(ui.includes('1. まず、この分野を理解する'));assert(ui.includes('6. 4択を1つずつ検証する'));assert(ui.includes('8. この問題から持ち帰ること'));
 });
 
 
