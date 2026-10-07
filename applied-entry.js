@@ -1,4 +1,4 @@
-/* Additive v15.1 launcher. ?legacy=1 leaves all previous screens untouched. */
+/* Additive v15.2 launcher. ?legacy=1 leaves all previous screens untouched. */
 (() => {
 'use strict';
 if (new URLSearchParams(location.search).get('legacy') === '1') return;
@@ -39,7 +39,7 @@ function enhanceHome() {
   const launch = document.createElement('section');
   launch.className = 'panel';
   launch.setAttribute('aria-label', 'JCSQE演習道場');
-  launch.innerHTML = '<span class="tag">v15.1 · JCSQE演習道場</span><h1 style="margin-top:14px">問題数を選ばず、<br>次々と解く。</h1><p>公式公開過去問の出題形式を参考にした400問から、未回答・弱点・復習時期を自動で優先。1問ごとに解説を確認し、そのまま次へ進みます。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">演習道場を開く →</a></p><p class="muted">過去問道場を参考に、出題範囲の指定・続きから再開・未回答/弱点の復習・網羅度と学習履歴を重視した作りです。通常演習に問題数選択はありません。</p>';
+  launch.innerHTML = '<span class="tag">v15.2 · JCSQE演習道場</span><h1 style="margin-top:14px">問題数を選ばず、<br>次々と解く。</h1><p>公式公開過去問の出題形式を参考にした400問から、未回答・弱点・復習時期を自動で優先。1問ごとに教科書水準の解説で周辺知識まで確認し、そのまま次へ進みます。</p><p><a class="primary" data-applied-launch style="display:inline-block;text-decoration:none" href="./practice.html">演習道場を開く →</a></p><p class="muted">過去問道場を参考に、出題範囲の指定・続きから再開・未回答/弱点の復習・網羅度と学習履歴を重視した作りです。通常演習に問題数選択はありません。</p>';
   const benchmark = document.createElement('section');
   benchmark.className='panel';
   benchmark.setAttribute('aria-label','本番校正10回');
