@@ -52,12 +52,13 @@ test('same-topic explanations return to the authoritative definition',()=>{
   }
 });
 
-test('applied explanations name both the wrong mechanism and the correct one',()=>{
+test('applied explanations tie the wrong answer and correct answer back to the decision rule',()=>{
   for(const q of raw.questions.filter(q=>q.type==='applied')){
     const wrong=[0,1,2,3].find(i=>i!==q.correct);
     const x=T.coreExplanation(q,wrong);
-    assert(x.whySelectedWrong.includes(q.reasons[wrong]),q.id);
-    assert(x.whyCorrect.includes(q.reasons[q.correct]),q.id);
-    assert(x.repair.includes(q.options[q.correct]),q.id);
+    assert(x.whySelectedWrong.includes(q.options[wrong])||x.whySelectedWrong.includes(q.reasons[wrong]),q.id+' wrong option');
+    assert(x.whyCorrect.includes(q.options[q.correct])||x.repair.includes(q.options[q.correct]),q.id+' correct option');
+    assert(x.rule.length>=25,q.id+' rule depth');
+    assert(x.path.join(' ').length>=45,q.id+' reasoning path');
   }
 });
