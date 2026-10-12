@@ -69,3 +69,21 @@ html,body{height:100%}
   #applied-app>.nav{padding-top:6px;padding-bottom:max(6px,env(safe-area-inset-bottom))}
   #applied-app>.nav a,#applied-app>.nav button{min-height:42px;padding:7px 6px;font-size:11px}
 }
+
+/* v15.7 core-first explanations */
+.core-explanation{margin:14px 0 16px;padding:16px;border:1px solid var(--brand);border-radius:14px;background:color-mix(in srgb,var(--brand) 6%,var(--surface));font-size:14px;line-height:1.8}
+.core-kicker{font-size:10px;letter-spacing:.18em;font-weight:850;color:var(--brand)}
+.core-explanation h3{margin:3px 0 13px;font-size:18px;color:var(--text)}
+.core-explanation>div:not(.core-kicker){margin:10px 0;padding:11px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.core-explanation b{display:block;margin-bottom:4px;color:var(--brand)}
+.core-explanation p{margin:0}
+.core-explanation ol{margin:5px 0 0;padding-left:22px}
+.core-explanation li{margin:5px 0}
+.core-wrong{border-color:var(--bad)!important;background:color-mix(in srgb,var(--bad) 7%,var(--surface))!important}
+.core-wrong b{color:var(--bad)}
+.core-repair{border-left:3px solid var(--bad)!important}
+.core-memory{border-left:3px solid var(--good)!important}
+.core-memory b{color:var(--good)}
+.textbook-deep:not([open]){background:var(--surface)}
+.textbook-deep>summary{cursor:pointer}
+@media(max-width:520px){.core-explanation{padding:13px;font-size:13px}.core-explanation h3{font-size:17px}.core-explanation>div:not(.core-kicker){padding:10px}}
