@@ -1,3 +1,4 @@
+// v15.7 core-first explanation contract
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 global.window={};require('../syllabus-course.js');
