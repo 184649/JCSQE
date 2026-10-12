@@ -85,13 +85,16 @@ try:
         wrong=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];const q=s.snapshots[id];return [0,1,2,3].find(x=>x!==q.correct)}''',KEY)
         page.locator(f'[data-act="answer"][data-choice="{wrong}"]').click()
         page.locator('.feedback').wait_for()
-        assert page.locator('.textbook-deep[open]').count()==1
-        assert page.get_by_role('heading',name='1. まず、この分野を理解する').count()==1
-        assert page.get_by_role('heading',name='5. 似た概念を表で整理する').count()==1
-        assert page.get_by_role('heading',name='6. 4択を1つずつ検証する').count()==1
+        assert page.locator('.core-explanation').count()==1
+        assert page.get_by_role('heading',name='この問題の核心').count()==1
+        assert page.get_by_text('判断基準',exact=True).count()==1
+        assert page.get_by_text('問題文の決め手',exact=True).count()==1
+        assert page.get_by_text('正解までの一本道',exact=True).count()==1
+        assert page.get_by_text('あなたの選択肢がダメな1点',exact=True).count()==1
+        assert page.locator('.textbook-deep[open]').count()==0
+        page.locator('.textbook-deep>summary').click()
         assert page.locator('.textbook-option').count()==4
-        assert page.locator('.textbook-table tbody tr').count()>=1
-        passed('continuous dojo gives textbook-level feedback after each answer')
+        passed('continuous dojo shows core reasoning first and textbook detail on demand')
 
         first_id=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;return s.questionIds[s.index]}''',KEY)
         page.locator('[data-act="continuous-next"]').click()
@@ -150,11 +153,11 @@ try:
         page.locator('[data-action="nav"][data-route="settings"]').click()
         page.get_by_role('heading',name='アプリのバージョン').wait_for()
         panel=page.locator('.version-panel')
-        assert 'v15.6' in panel.inner_text()
+        assert 'v15.7' in panel.inner_text()
         page.get_by_role('button',name='最新版を確認').click()
         page.get_by_text('最新版です',exact=True).wait_for()
         text_now=panel.inner_text()
-        assert '現在' in text_now and 'v15.6' in text_now and '公開中' in text_now
+        assert '現在' in text_now and 'v15.7' in text_now and '公開中' in text_now
         passed('version panel proves the currently loaded build and latest published version')
         page.set_viewport_size({'width':320,'height':700})
         page.evaluate("""()=>{
@@ -187,7 +190,7 @@ try:
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
         passed('existing homepage launches continuous dojo while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-6-20261007');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-7-20261013');return !!(await c.match('./practice.html'));}")
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
