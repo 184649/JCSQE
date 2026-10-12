@@ -1,6 +1,6 @@
 /* v7 mobile study UI. No backend, analytics, login, or automatic external transfer. */
 (()=>{'use strict';
-const C=window.JCSQEStudy,Course=window.JCSQECourse,Dojo=window.JCSQEDojo,CONCEPTS=window.JCSQE_SYLLABUS_CONCEPTS||[],VERSION='15.6',NAME='JCSQE〜初級〜',URL='https://184649.github.io/JCSQE/';
+const C=window.JCSQEStudy,Course=window.JCSQECourse,Dojo=window.JCSQEDojo,CONCEPTS=window.JCSQE_SYLLABUS_CONCEPTS||[],VERSION='15.7',NAME='JCSQE〜初級〜',URL='https://184649.github.io/JCSQE/';
 const $=s=>document.querySelector(s),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const letters='ABCD';let c,dojoBank,state,route='home',result=null,courseResult=null,dojoResult=null,persistent=true,blocked=false,storageMessage='',timer=null,worker=null;
 const app=$('#app');

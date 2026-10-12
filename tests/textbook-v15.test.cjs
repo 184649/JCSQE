@@ -45,8 +45,8 @@ test('practice and benchmark UIs render textbook sections',()=>{
  const benchmark=fs.readFileSync(path.join(root,'benchmark-ui.js'),'utf8');
  const phtml=fs.readFileSync(path.join(root,'practice.html'),'utf8');
  const bhtml=fs.readFileSync(path.join(root,'benchmark.html'),'utf8');
- for(const heading of ['1. まず、この分野を理解する','5. 似た概念を表で整理する','6. 4択を1つずつ検証する','8. この問題から持ち帰ること'])assert(practice.includes(heading),heading);
- for(const heading of ['1. 分野の全体像','5. 似た概念との比較','6. 4択を1つずつ検証','8. 覚える要点'])assert(benchmark.includes(heading),heading);
- assert(phtml.includes('textbook-v15.js?v=15.2'));
- assert(bhtml.includes('textbook-v15.js?v=15.2'));
+ for(const heading of ['この問題の核心','判断基準','正解までの一本道','あなたの選択肢がダメな1点','さらに詳しく学ぶ（教科書）'])assert(practice.includes(heading),heading);
+ for(const heading of ['この問題の核心','判断基準','正解までの一本道','あなたの選択肢がダメな1点','さらに詳しく学ぶ（教科書）'])assert(benchmark.includes(heading),heading);
+ assert(phtml.includes('textbook-v15.js?v=15.7'));
+ assert(bhtml.includes('textbook-v15.js?v=15.7'));
 });
