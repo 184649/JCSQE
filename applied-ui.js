@@ -84,6 +84,23 @@ function home() {
   <section class="panel"><h2>学習履歴</h2><p>回答は1問ごとに自動保存します。未回答・弱点・復習時期を履歴から判断し、次の出題へ反映します。</p><p>${btn('学習記録を見る','history')}</p></section>
   <section class="panel"><h2>本番校正</h2><p>本番形式だけは実試験に合わせて40問・60分です。通常の連続演習とは別に実施します。</p><p><a class="button primary" href="./benchmark.html">本番校正ダッシュボード →</a></p></section>`;
 }
+function coreExplanationHtml(q,selected,order){
+  if(!T?.coreExplanation)return '';
+  const x=T.coreExplanation(q,selected);
+  const selectedWrong=Number.isInteger(selected)&&selected!==q.correct;
+  return `<section class="core-explanation ${selectedWrong?'wrong-answer':''}">
+    <div class="core-kicker">CORE</div>
+    <h3>この問題の核心</h3>
+    <div class="core-rule"><b>判断基準</b><p>${esc(x.rule)}</p></div>
+    <div class="core-clue"><b>問題文の決め手</b><p>「${esc(x.clue)}」</p></div>
+    <div class="core-path"><b>正解までの一本道</b><ol>${x.path.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div>
+    <div class="core-correct"><b>なぜ正解か</b><p>${esc(x.whyCorrect)}</p></div>
+    ${selectedWrong?`<div class="core-wrong"><b>あなたの選択肢がダメな1点</b><p>${esc(x.whySelectedWrong)}</p></div>`:''}
+    ${selectedWrong&&x.repair?`<div class="core-repair"><b>どう直せば正しくなるか</b><p>${esc(x.repair)}</p></div>`:''}
+    <div class="core-boundary"><b>似た概念との境界</b><p>${esc(x.boundary)}</p></div>
+    <div class="core-memory"><b>1行で覚える</b><p>${esc(x.memory)}</p></div>
+  </section>`;
+}
 function textbookExplanation(q, selected, order){
   if(!T)return '';
   const l=T.lesson(q),targetTerms=l.targets.map(x=>x.term),related=l.related||[];
@@ -93,16 +110,11 @@ function textbookExplanation(q, selected, order){
     return `<div class="textbook-option ${n===q.correct?'correct':'wrong'} ${n===selected?'selected':''}"><div class="reason-head"><b>${letters[i]}. ${esc(q.options[n])}</b><span class="verdict">${n===q.correct?'○ 正解':'× 誤り'}</span></div>${notes.map((x,j)=>`<p>${j===0?'<b>判定理由：</b>':''}${esc(x)}</p>`).join('')}</div>`;
   }).join('');
   const targets=l.targets.length?l.targets.map(x=>`<li><b>${esc(x.term)}</b>：${esc(x.definition)}</li>`).join(''):`<li><b>${esc(q.family||q.chapter)}</b>の目的・判断基準を理解する。</li>`;
-  return `<details class="deep textbook-deep" open><summary>教科書解説</summary><div class="body textbook-body">
-    <div class="textbook-title"><span>TEXTBOOK</span><h3>${esc(q.family||q.chapter)}｜この1問から周辺知識まで理解する</h3></div>
-    <section class="textbook-section"><h4>1. まず、この分野を理解する</h4><p>${esc(l.chapter.overview)}</p><p>${esc(l.family.overview)}</p></section>
-    <section class="textbook-section"><h4>2. このテーマの定義</h4><ul class="textbook-definition">${targets}</ul><p><b>比較するときの軸：</b>${esc(l.family.compare||l.chapter.axis)}</p></section>
-    <section class="textbook-section"><h4>3. 問題文をどう読むか</h4><p><b>${esc(l.type.title)}</b></p><ol class="decision-steps">${l.type.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p class="textbook-tip"><b>試験での注意：</b>${esc(l.type.tip)} ${esc(l.chapter.exam||'')}</p></section>
-    <section class="textbook-section"><h4>4. 今回の問題へ当てはめる</h4><p><b>決め手：</b>${esc(q.brief)}</p><p>${esc(q.detail)}</p></section>
-    <section class="textbook-section"><h4>5. 似た概念を表で整理する</h4><div class="table-wrap"><table class="textbook-table"><thead><tr><th>用語</th><th>意味・使う場面</th></tr></thead><tbody>${conceptRows}</tbody></table></div></section>
-    <section class="textbook-section"><h4>6. 4択を1つずつ検証する</h4>${optionRows}</section>
-    <section class="textbook-section"><h4>7. よくある取り違え</h4><p>${esc(l.family.trap||l.chapter.exam)}</p></section>
-    <section class="textbook-section textbook-summary"><h4>8. この問題から持ち帰ること</h4><p>正解記号ではなく、<b>「何を対象に、何のために使う概念か」</b>を説明できる状態にする。次に同じテーマが別事例で出ても、定義と比較軸から判断する。</p><p class="muted">公式シラバス項目 ${esc(l.syllabus)} / ${esc(l.level)}。この解説は公式シラバスを範囲基準にした学習用テキストで、公式問題の解説そのものではありません。</p><p><a href="${esc(l.source)}" target="_blank" rel="noopener noreferrer">公式シラバス Ver.3.0 を確認</a></p></section>
+  return `<details class="deep textbook-deep"><summary>さらに詳しく学ぶ（教科書）</summary><div class="body textbook-body">
+    <section class="textbook-section"><h4>定義と周辺知識</h4><p>${esc(l.chapter.overview)}</p><p>${esc(l.family.overview)}</p><ul class="textbook-definition">${targets}</ul></section>
+    <section class="textbook-section"><h4>似た概念の比較</h4><div class="table-wrap"><table class="textbook-table"><thead><tr><th>用語</th><th>意味・使う場面</th></tr></thead><tbody>${conceptRows}</tbody></table></div></section>
+    <section class="textbook-section"><h4>4択を全部確認</h4>${optionRows}</section>
+    <section class="textbook-section textbook-summary"><h4>補足</h4><p>${esc(l.family.trap||l.chapter.exam)}</p><p class="muted">公式シラバス項目 ${esc(l.syllabus)} / ${esc(l.level)}。公式問題の解説そのものではありません。</p></section>
   </div></details>`;
 }
 function feedback(q, selected, order, confidence) {
@@ -111,7 +123,7 @@ function feedback(q, selected, order, confidence) {
   const status=selected===q.correct?'正解':'ここを確認';
   return `<section class="panel feedback ${selected===q.correct?'':'incorrect'}" tabindex="-1" aria-live="polite"><h2>${status}</h2><p class="result-answer">正解：<b>${letter}. ${esc(q.options[q.correct])}</b><br>あなたの回答：${esc(selectedLabel)}</p>
   <div class="brief"><b>この問題の結論</b><p>${esc(q.brief)}</p></div>
-  ${textbookExplanation(q,selected,order)}
+  ${coreExplanationHtml(q,selected,order)}${textbookExplanation(q,selected,order)}
   </section>`;
 }
 function quiz() {
