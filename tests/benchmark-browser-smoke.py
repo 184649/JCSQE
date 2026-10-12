@@ -53,12 +53,13 @@ try:
     page.locator('.result-score').wait_for()
     assert page.locator('.result-question').count()==40
     page.locator('.result-question').first.click()
-    assert page.locator('.benchmark-textbook').count()>=1
-    assert page.get_by_role('heading',name='1. 分野の全体像').count()>=1
-    assert page.get_by_role('heading',name='5. 似た概念との比較').count()>=1
-    assert page.get_by_role('heading',name='6. 4択を1つずつ検証').count()>=1
+    assert page.locator('.core-explanation').count()>=1
+    assert page.get_by_role('heading',name='この問題の核心').count()>=1
+    assert page.get_by_text('判断基準',exact=True).count()>=1
+    assert page.locator('.textbook-deep[open]').count()==0
+    page.locator('.textbook-deep>summary').first.click()
     assert page.locator('.textbook-option').count()>=4
-    ok('submitted form reveals textbook-level explanations')
+    ok('submitted form reveals core-first explanations with optional textbook detail')
     page.locator('[data-act="home"]').click()
     assert page.get_by_text('1/10',exact=True).count()>=1
     assert page.get_by_text('40/400',exact=True).count()>=1
@@ -73,7 +74,7 @@ try:
     page.get_by_role('heading',name='本番校正 第2回').wait_for()
     ok('scheduled plan deep-links to exact benchmark form')
     page.wait_for_function('!!navigator.serviceWorker.controller',timeout=30000)
-    assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-6-20261007');return !!(await c.match('./benchmark.html'));}")
+    assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-7-20261013');return !!(await c.match('./benchmark.html'));}")
     ctx.set_offline(True);page.reload();page.get_by_text('本番80%への積み上げ').wait_for()
     ok('benchmark page reloads offline from v15 cache')
     assert not errors,errors
