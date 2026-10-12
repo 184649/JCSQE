@@ -376,6 +376,180 @@ function extractClue(q){
   if(q.type==='multi-blank')return '（1）～（4）を1枠ずつ定義へ対応付けること';
   return q.brief||q.detail||'問題文が求める目的と選択肢の目的を一致させること';
 }
+function appliedCore(q,selected){
+  const s=String(q.text||''),sel=Number.isInteger(selected)?q.options?.[selected]:'',correct=q.options?.[q.correct]||'';
+  const selReason=Number.isInteger(selected)?q.reasons?.[selected]||'':'',corReason=q.reasons?.[q.correct]||'';
+  const base={rule:q.brief||'',path:[],whyCorrect:'',whySelectedWrong:'',repair:'',boundary:'',memory:q.brief||''};
+  if(/実装は上限だけ/.test(s)){
+    base.rule='境界値で欠陥を検出するには、「仕様の結果」と「誤実装の結果」が異なる入力を選ぶ。単に境界の近くであるだけでは足りない。';
+    base.path=['仕様の上限値は受理されるか確認する。','誤実装では「上限未満」なので、上限値そのものだけ結果が反転する。',`したがって「${correct}」を入力すると、仕様=受理／誤実装=拒否となり欠陥が露出する。`];
+    base.whyCorrect=`${correct}では仕様と誤実装の結果が初めて分かれるため、比較演算子の「=」抜けを直接検出できる。`;
+    base.whySelectedWrong=`${sel}では「${selReason}」。つまり仕様と誤実装の結果が同じなので、誤った比較演算子があっても観測結果に差が出ず、欠陥を検出できない。`;
+    base.repair=`入力値を「${correct}」へ変えると、仕様と誤実装の結果が分かれる。境界値分析では「近い値」ではなく「期待結果が切り替わる値」を選ぶ。`;
+    base.boundary='境界値分析の核心は、境界の前後・境界そのもので期待結果が切り替わる点を狙うこと。';
+    return base;
+  }
+  if(/同値クラス/.test(s)){
+    base.rule='同値分割では、同じ結果が期待される入力集合を1つのクラスとみなし、各クラスから代表値を1つ選ぶ。境界値をたくさん選ぶことが目的ではない。';
+    base.path=[q.detail,'各候補が「下側無効・有効・上側無効」の3クラスをすべて含むか確認する。',`3クラスを1つずつ含む「${correct}」が最小の組合せ。`];
+    base.whyCorrect=`${correct}は3つの同値クラスをそれぞれ1回ずつ通るため、3回で必要な振る舞いを網羅できる。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。そのため3つの振る舞いのうち少なくとも1クラスが未確認になり、同値分割の目的を満たさない。`;
+    base.repair=`不足しているクラスの代表値を1つ入れ、「${correct}」のように3クラスを各1回含む形へ直す。`;
+    base.boundary='同値分割=入力集合を振る舞いで分ける。境界値分析=振る舞いが切り替わる境界を重点確認する。';
+    return base;
+  }
+  if(/ANDではなくOR/.test(s)){
+    base.rule='ANDとORの違いは「片方だけ真」のときに現れる。両方真・両方偽では結果が一致するため誤実装を区別できない。';
+    base.path=['仕様ANDと誤実装ORの真理値を比較する。','両方真→両方true、両方偽→両方falseで差なし。','片方だけ真→AND=false、OR=trueとなり差が出る。'];
+    base.whyCorrect=`${correct}ではANDとORの結果が異なるため、実装の論理演算子の取り違えを観測できる。`;
+    base.whySelectedWrong=`${sel}では「${selReason}」。仕様と誤実装が同じ結果になるため、AND/ORの取り違えを検出できない。`;
+    base.repair='A=true,B=false または A=false,B=true のような「片方だけ真」のケースへ変える。';
+    base.boundary='論理条件の誤りは、正しい式と誤った式の結果が分岐する入力を選んで初めて検出できる。';
+    return base;
+  }
+  if(/判定結果網羅率/.test(s)){
+    base.rule='判定結果網羅では、各判定についてtrueとfalseの両方を分母にする。実行したテストケース数ではなく、通過した判定結果の種類を数える。';
+    base.path=['第1判定 x<0 のtrue/falseを数える。','第2判定 x>0 のtrue/falseを数える。','第2判定falseはx=0でしか通らないため、今回の2入力では3/4=75%。'];
+    base.whyCorrect=`${correct}は、4つの判定結果のうち3つを通過した割合3/4に一致する。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。分母4に対する通過結果数を正しく数えていない。`;
+    base.repair='x=0を追加すれば第2判定のfalseも通り、判定結果網羅率は100%になる。';
+    base.boundary='ケース数ではなく「判定ごとのtrue/false」を数える。';
+    return base;
+  }
+  if(/p管理図/.test(s)){
+    base.rule='p管理図が扱うのは「不適合品の割合」。1個の対象に不適合が複数あっても、その対象は不適合品1件として数える。';
+    base.path=['分子=不適合が1つ以上ある対象数。','分母=検査した対象総数。',`したがって「${correct}」。不適合そのものの個数はp管理図の分子ではない。`];
+    base.whyCorrect=`${correct}は不適合品数÷検査数になっており、p管理図の定義どおり。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。不適合「品」と不適合「個数」、または分子・分母を取り違えている。`;
+    base.repair='「不適合がある対象はいくつか」を分子に戻し、検査総数で割る。';
+    base.boundary='p=不適合品の割合。u=単位当たり不適合数。何を数えるかが違う。';
+    return base;
+  }
+  if(/回帰式/.test(s)){
+    base.rule='回帰式の予測値は、与えられたxを式全体へ代入して求める。傾きの項だけでなく切片も含める。';
+    base.path=['xを傾きの項へ代入する。','切片を加える。',q.detail];
+    base.whyCorrect=`${correct}は回帰式のすべての項を使って計算した値。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。式の一部を落とす、不要な値を足すなど、元の回帰式どおりに計算していない。`;
+    base.repair=`式をそのまま書き、xを代入してから計算する。今回は ${q.detail}`;
+    base.boundary='回帰式は近似・予測の式であり、計算結果が実測値と必ず一致するという意味ではない。';
+    return base;
+  }
+  if(/欠陥密度/.test(s)){
+    base.rule='欠陥密度は「欠陥数÷製品規模」。規模の違う製品を総欠陥数だけで比較してはいけない。';
+    base.path=['XとYそれぞれで欠陥数をKLOCで割る。',q.detail,'規模で正規化した値を比較する。'];
+    base.whyCorrect=`${correct}は両製品を同じ単位「件/KLOC」に正規化している。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。規模差を調整できていないか、分子・分母を逆にしている。`;
+    base.repair='両方とも「欠陥数÷KLOC」に統一してから比較する。';
+    base.boundary='件数=量、密度=規模当たり。比較目的なら分母をそろえる。';
+    return base;
+  }
+  if(/MTBF/.test(s)){
+    base.rule='MTBFは故障と故障の間の平均稼働時間。総稼働時間を故障回数で割り、修理時間は稼働時間へ混ぜない。';
+    base.path=['故障前に稼働した時間だけを合計する。','故障回数を数える。',q.detail];
+    base.whyCorrect=`${correct}は総稼働時間÷故障回数で求めた値。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。故障回数で割っていない、または修理時間と稼働時間を混同している。`;
+    base.repair='稼働時間だけを合計し、その期間に観測した故障回数で割る。';
+    base.boundary='MTBF=故障しにくさ側の時間。修復に要する時間とは別の指標。';
+    return base;
+  }
+  if(/PrecisionとRecall/.test(s)){
+    base.rule='PrecisionとRecallの違いは分母。Precisionは「陽性と予測した中で正解」、Recallは「本当の陽性をどれだけ拾ったか」。';
+    base.path=['Precision=TP/(TP+FP)。誤警報FPを分母に入れる。','Recall=TP/(TP+FN)。見逃しFNを分母に入れる。',q.detail];
+    base.whyCorrect=`${correct}は2つの分母を正しく使っている。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。FPとFNの役割、またはPrecision/Recallの対応を取り違えている。`;
+    base.repair='「予測陽性を信じられるか」→Precision、「実陽性を拾えているか」→Recall、と意味から式を戻す。';
+    base.boundary='FPがPrecisionを下げ、FNがRecallを下げる。';
+    return base;
+  }
+  if(/頂上事象/.test(s)&&/AND\/OR/.test(s)){
+    base.rule='頂上事象からAND/ORで原因の組合せへ遡るのがFTA。故障モードから影響へ進むFMEAとは分析方向が逆。';
+    base.path=['出発点を見る → 頂上事象。','原因をAND/ORで論理分解している。','この2条件が揃うのでFTA。'];
+    base.whyCorrect=`${correct}は頂上事象から原因組合せへトップダウンに分解する技法。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。出発点または分析方法が問題文と一致しない。`;
+    base.repair='「頂上事象」「AND/OR」「原因へ遡る」の3語があればFTAへ結び付ける。';
+    base.boundary='FMEA=故障モード→影響、FTA=頂上事象→原因組合せ、HAZOP=ガイドワード→逸脱。';
+    return base;
+  }
+  if(/仕様どおり動作することは確認済み/.test(s)){
+    base.rule='Verificationは仕様への適合、Validationは実際の用途・利用者ニーズへの適合。仕様どおりでも実務に合わないなら不足しているのはValidation側。';
+    base.path=['「仕様どおり」は既に確認済み → Verificationの問いは一度通っている。','残った問題は「実利用者の業務に合わない」。','合否基準が実利用目的なのでValidationを行う。'];
+    base.whyCorrect=`${correct}は、問題文で残っている「利用目的への不適合」を直接確認する。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。既に確認済みの仕様適合や別目的の測定を重ねても、実利用目的に合うかという疑問へ答えない。`;
+    base.repair='「何を基準に合否を判断するか」を仕様から利用目的へ切り替える。';
+    base.boundary='Verification=正しく作ったか。Validation=正しいものを作ったか。';
+    return base;
+  }
+  if(/変更A/.test(s)&&/分類として適切/.test(s)){
+    base.rule='保守分類は変更内容ではなく「なぜ変更するか」で決める。バグ修正=是正、環境変化=適応、性能・使いやすさ改善=完全化、将来障害の予防=予防。';
+    base.path=['変更Aの理由を4分類へ当てはめる。','変更Bも独立に分類する。',q.detail];
+    base.whyCorrect=`${correct}はAとBそれぞれの変更理由を正しく分類している。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。少なくとも一方の変更理由を別の保守目的へ取り違えている。`;
+    base.repair='「何を直すか」ではなく「現在の欠陥／外部環境／改善要望／将来予防」のどれが理由かを見る。';
+    base.boundary='是正・適応・完全化・予防の違いは変更理由。';
+    return base;
+  }
+  if(/必要最小限|影響と残余リスク|匿名化・暗号化|初期設定を非公開/.test(s)){
+    base.rule='プライバシー対策は階層で区別する。Privacy by Design=設計原則、PIA=影響評価、PET=保護技術、ISMS=情報セキュリティ管理の仕組み。';
+    base.path=['設問が「設計原則・評価活動・具体技術・管理システム」のどれかを判定する。',q.detail,`その活動の種類に直接対応する「${correct}」を選ぶ。`];
+    base.whyCorrect=`${correct}は問題文が示す活動の階層と一致する。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。関連はあるが、設計原則・評価・技術・管理システムの階層が違う。`;
+    base.repair='「何をするか」ではなく「設計の原則か、影響を評価するのか、技術で保護するのか」を先に分類する。';
+    base.boundary='PbD=原則、PIA=評価、PET=技術。';
+    return base;
+  }
+  if(/有限状態|数理的な言語|公理と推論規則|実行モデル/.test(s)){
+    base.rule='形式手法周辺は「書く・探索する・証明する・動かす」で区別する。形式仕様記述=厳密に書く、モデル検査=状態探索、定理証明=論理証明、シミュレーション=実行して観察。';
+    base.path=['問題文の動詞に注目する。',q.detail,`その操作を行う「${correct}」を選ぶ。`];
+    base.whyCorrect=`${correct}は問題文の操作方法そのものに対応する。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。同じ形式手法周辺でも、行っている操作が違う。`;
+    base.repair='「仕様を書く／状態を探索／性質を証明／モデルを実行」のどれかへ言い換える。';
+    base.boundary='形式仕様記述・モデル検査・定理証明・シミュレーションは、対象ではなく確認方法が違う。';
+    return base;
+  }
+  if(/IaaSの仮想マシン/.test(s)){
+    base.rule='IaaSでは物理基盤を事業者が管理しても、利用者が導入したゲストOSやアプリの管理責任は通常利用者側に残る。契約で責任境界を確認する。';
+    base.path=['誰がゲストOSを導入したか → 自社。','OS運用代行は契約に含まれない。','したがってOSパッチは自社管理。'];
+    base.whyCorrect=`${correct}は契約条件とIaaSの責任分担の両方に一致する。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。物理基盤の責任とゲストOSの責任を混同するか、管理責任を不適切に放棄している。`;
+    base.repair='クラウド=全部事業者責任と考えず、層ごとに管理主体を切り分ける。';
+    base.boundary='IaaSはインフラをサービス化するが、ゲストOS・アプリまで自動的に事業者管理になるわけではない。';
+    return base;
+  }
+  if(/CIの考え方/.test(s)){
+    base.rule='CIの核心は「小さな変更を頻繁に統合し、統合ごとに自動検査し、失敗をすぐ直す」こと。自動化だけでも頻繁な統合だけでも不十分。';
+    base.path=['問題は月末まとめ統合で差分が大きいこと。','統合頻度を上げ、各統合でビルド・テストする。','失敗をすぐ修正してフィードバックループを短くする。'];
+    base.whyCorrect=`${correct}はCIの3要素「頻繁な統合・自動検査・早期修正」をすべて満たす。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。CIの3要素のうち一部が欠け、問題発見や修正が遅いまま残る。`;
+    base.repair='「自動化したか」だけでなく「いつ統合し、いつ失敗を直すか」まで確認する。';
+    base.boundary='CI=統合と早期フィードバック。継続的デリバリー=いつでもリリース可能な状態。';
+    return base;
+  }
+  if(/先行提供/.test(s)&&/エラー率/.test(s)){
+    base.rule='カナリア展開では、影響範囲を限定して観測し、事前に決めたガードレールを超えたら展開を止める。基準超過を無視して母数を増やすのは目的と逆。';
+    base.path=['事前上限を超えた事実を確認する。','従来版より悪化している比較結果も確認する。','全面展開を止め、切戻し・原因調査へ進む。'];
+    base.whyCorrect=`${correct}は段階展開で設定した停止条件を実際の判断に使っている。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。観測で得た警告を無視・相殺・破棄しており、段階展開の安全弁を使えていない。`;
+    base.repair='展開前に停止条件を決め、超えたらまず止める。追加分析は停止後に行う。';
+    base.boundary='カナリアの価値は「小さく試す」だけでなく「悪化時に小さい範囲で止められる」こと。';
+    return base;
+  }
+  if(/SLAは月間稼働率/.test(s)){
+    base.rule='SLAの稼働率は契約で定めた式・分母・除外条件に従う。勝手な丸めや停止時間の除外を加えない。';
+    base.path=['30日を分へ換算 → 43,200分。','稼働時間=43,200−30。','(43,170/43,200)×100≈99.9306%なので99.9%以上。'];
+    base.whyCorrect=`${correct}は契約式をそのまま適用した結果と判定に一致する。`;
+    base.whySelectedWrong=`${sel}は「${selReason}」。割合計算、丸め、または除外条件を契約定義から変えている。`;
+    base.repair='単位をそろえ、契約式を一字一句そのまま数式化してから判定する。';
+    base.boundary='SLAは計算式そのものより、分母・除外条件・測定期間を契約どおり扱うことが重要。';
+    return base;
+  }
+  base.rule=q.brief||'問題文の条件を定義へ直接対応させる。';
+  base.path=[q.brief||q.text,q.detail||'条件を定義へ当てはめる。',`正解「${correct}」と問題文の条件を照合する。`];
+  base.whyCorrect=`${correct}が正しい理由は「${corReason}」。さらに、${q.detail||q.brief||'問題文の条件に一致する'}。`;
+  base.whySelectedWrong=`${sel}では「${selReason}」。問題の判断基準「${q.brief||q.detail||''}」へ戻すと、その条件を満たさないため不適切。`;
+  base.repair=`判断基準を「${q.brief||q.detail||''}」へ戻して選び直すと「${correct}」になる。`;
+  base.boundary='選択肢の語感ではなく、問題文の条件を満たすかだけで判定する。';
+  return base;
+}
 function coreExplanation(q,selected){
   const l=lesson(q),targets=targetsFor(q),target=targets[0]||null,correct=q.correct;
   const result={
@@ -443,19 +617,21 @@ function coreExplanation(q,selected){
     result.memory=`${target.term}＝${target.definition}`;
     return result;
   }
+  if(q.type==='applied'){
+    const a=appliedCore(q,selected);
+    Object.assign(result,a);
+    result.selectedCorrect=selected===correct;
+    return result;
+  }
   const selectedReason=Number.isInteger(selected)?q.reasons?.[selected]||'':'';
   result.rule=q.brief||'問題文の条件を定義へ直接対応させる。';
-  result.path=[
-    `何を求めているかを固定する → ${q.brief||q.text}`,
-    q.detail||'与えられた条件を定義・式・境界へ当てはめる。',
-    `正解「${q.options?.[correct]||''}」がその条件を満たすことを確認する。`
-  ];
+  result.path=[q.brief||q.text,q.detail||'条件を定義へ当てはめる。',`正解「${q.options?.[correct]||''}」と照合する。`];
   result.whyCorrect=`${q.options?.[correct]||'正解'}：${q.reasons?.[correct]||q.detail||'問題文の条件に一致する。'}`;
   if(Number.isInteger(selected)&&selected!==correct){
     result.whySelectedWrong=`${q.options?.[selected]||'選択した答え'}：${selectedReason||'問題文の条件と一致しない。'}`;
-    result.repair=`正しく考え直すと「${q.options?.[correct]||''}」。${q.reasons?.[correct]||q.detail||''}`;
+    result.repair=`正しく直すと「${q.options?.[correct]||''}」。${q.reasons?.[correct]||q.detail||''}`;
   }
-  result.boundary=l.family.compare||l.chapter.axis||'何を数えるか・何を境界にするか・何を分母にするかを確認する。';
+  result.boundary=l.family.compare||l.chapter.axis||'対象・目的・条件を分ける。';
   result.memory=q.brief||q.detail||q.options?.[correct]||'';
   return result;
 }
