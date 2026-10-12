@@ -427,7 +427,7 @@ function appliedCore(q,selected){
   }
   if(/回帰式/.test(s)){
     base.rule='回帰式の予測値は、与えられたxを式全体へ代入して求める。傾きの項だけでなく切片も含める。';
-    base.path=['xを傾きの項へ代入する。','切片を加える。',q.detail];
+    base.path=['式を「傾き×x＋切片」に分ける。予測値はこの2つを両方使う。','xを傾きの項へ代入する。ここで得た値はまだ途中で、切片を落としてはいけない。',q.detail];
     base.whyCorrect=`${correct}は回帰式のすべての項を使って計算した値。`;
     base.whySelectedWrong=`${sel}は「${selReason}」。式の一部を落とす、不要な値を足すなど、元の回帰式どおりに計算していない。`;
     base.repair=`式をそのまま書き、xを代入してから計算する。今回は ${q.detail}`;
@@ -445,7 +445,7 @@ function appliedCore(q,selected){
   }
   if(/MTBF/.test(s)){
     base.rule='MTBFは故障と故障の間の平均稼働時間。総稼働時間を故障回数で割り、修理時間は稼働時間へ混ぜない。';
-    base.path=['故障前に稼働した時間だけを合計する。','故障回数を数える。',q.detail];
+    base.path=['故障前に実際に稼働していた時間だけを合計する。修理中の時間はここへ入れない。','その観測期間に発生した故障回数を数え、総稼働時間をその回数で割る。',q.detail];
     base.whyCorrect=`${correct}は総稼働時間÷故障回数で求めた値。`;
     base.whySelectedWrong=`${sel}は「${selReason}」。故障回数で割っていない、または修理時間と稼働時間を混同している。`;
     base.repair='稼働時間だけを合計し、その期間に観測した故障回数で割る。';
@@ -499,7 +499,7 @@ function appliedCore(q,selected){
   }
   if(/有限状態|数理的な言語|公理と推論規則|実行モデル/.test(s)){
     base.rule='形式手法周辺は「書く・探索する・証明する・動かす」で区別する。形式仕様記述=厳密に書く、モデル検査=状態探索、定理証明=論理証明、シミュレーション=実行して観察。';
-    base.path=['問題文の動詞に注目する。',q.detail,`その操作を行う「${correct}」を選ぶ。`];
+    base.path=['問題文の動詞を「書く／探索する／証明する／動かして観察する」のどれかに分類する。','形式仕様記述=厳密に書く、モデル検査=状態を探索する、定理証明=論理的に証明する、シミュレーション=実行して観察する。',q.detail];
     base.whyCorrect=`${correct}は問題文の操作方法そのものに対応する。`;
     base.whySelectedWrong=`${sel}は「${selReason}」。同じ形式手法周辺でも、行っている操作が違う。`;
     base.repair='「仕様を書く／状態を探索／性質を証明／モデルを実行」のどれかへ言い換える。';
