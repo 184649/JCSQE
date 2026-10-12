@@ -367,11 +367,103 @@ function optionNote(q,index){
   }
   return [base];
 }
+function comboSlots(option){
+  const out={};String(option||'').split('/').forEach(part=>{const m=part.trim().match(/^\((\d)\)\s*(.+)$/);if(m)out[Number(m[1])]=m[2].trim();});return out;
+}
+function extractClue(q){
+  const quoted=String(q.text||'').match(/「([^」]{3,140})」/);
+  if(quoted)return quoted[1];
+  if(q.type==='multi-blank')return '（1）～（4）を1枠ずつ定義へ対応付けること';
+  return q.brief||q.detail||'問題文が求める目的と選択肢の目的を一致させること';
+}
+function coreExplanation(q,selected){
+  const l=lesson(q),targets=targetsFor(q),target=targets[0]||null,correct=q.correct;
+  const result={
+    title:'この問題の核心',
+    clue:extractClue(q),
+    rule:'',
+    path:[],
+    whyCorrect:'',
+    whySelectedWrong:'',
+    repair:'',
+    boundary:l.family.compare||l.chapter.axis||'対象・目的・使う場面を分ける。',
+    memory:'',
+    selectedCorrect:selected===correct
+  };
+  if(q.type==='scenario-selection'&&target){
+    const chosen=Number.isInteger(selected)?optionConcept(q,selected):null;
+    result.rule=`正解は「用語名」ではなく、設問が求める目的と定義が一致するもの。今回の基準は「${target.definition}」。`;
+    result.path=[
+      `問題文を「何をしたいか」に言い換える → ${target.definition}`,
+      `4択をそれぞれ「何をする概念か」に言い換える。`,
+      `目的が一致する「${target.term}」を選ぶ。`
+    ];
+    result.whyCorrect=`「${target.term}」は「${target.definition}」ため、問題文の目的と一致する。`;
+    if(chosen&&chosen.id!==target.id){
+      result.whySelectedWrong=`選んだ「${chosen.term}」は「${chosen.definition}」ための概念。問題が求める「${target.definition}」とは目的・対象がずれる。`;
+      result.repair=`もし設問が「${chosen.definition}」ことを求めていたなら、「${chosen.term}」が正解になる。今回はそこを求めていない。`;
+    }
+    result.memory=`${target.term}＝${target.definition}`;
+    return result;
+  }
+  if(q.type==='multi-blank'){
+    const right=comboSlots(q.options[correct]),chosen=Number.isInteger(selected)?comboSlots(q.options[selected]):{};
+    const defs=targets.length?targets:[];
+    const mismatches=[];
+    for(let i=1;i<=4;i++)if(chosen[i]&&right[i]&&chosen[i]!==right[i])mismatches.push({slot:i,chosen:chosen[i],right:right[i],def:defs[i-1]?.definition||''});
+    result.rule='組合せ問題は、選択肢を眺めて消去するのではなく、各空欄を独立に確定してから4枠すべてを照合する。1枠でも違えばその選択肢は誤り。';
+    result.path=[
+      '（1）の説明だけを読み、対応する用語を確定する。',
+      '（2）～（4）も同じように独立して確定する。',
+      `確定した並び「${Object.keys(right).map(i=>`（${i}）${right[i]}`).join('、')}」と4択を照合する。`
+    ];
+    result.whyCorrect=`正解は ${Object.keys(right).map(i=>`（${i}）${right[i]}`).join('、')}。4枠すべてが問題文の説明と一致する。`;
+    if(mismatches.length){
+      result.whySelectedWrong=mismatches.map(x=>`（${x.slot}）は「${x.chosen}」ではなく「${x.right}」。${x.def?`この枠の説明は「${x.def}」に対応する。`:''}`).join(' ');
+      result.repair=`選んだ組合せを正しく直すと、${mismatches.map(x=>`（${x.slot}）${x.chosen}→${x.right}`).join('、')}。`;
+    }
+    result.boundary='組合せ全体の雰囲気ではなく、空欄ごとの定義対応だけで判定する。';
+    result.memory=Object.keys(right).map(i=>`（${i}）${right[i]}`).join(' / ');
+    return result;
+  }
+  if(q.type==='same-topic-statement'&&target){
+    const selectedReason=Number.isInteger(selected)?q.reasons?.[selected]||'':'';
+    result.rule=`主語の「${target.term}」を一文で定義してから、各記述がその定義を狭め過ぎたり、広げ過ぎたり、別概念と入れ替えていないかを見る。`;
+    result.path=[
+      `基準となる定義を固定する → 「${target.term}」＝「${target.definition}」`,
+      '選択肢の中の「必ず・だけ・対象外・不要・保証」など、定義を変えてしまう語を確認する。',
+      '一部分が正しくても、文全体が定義と矛盾すれば誤りとする。'
+    ];
+    result.whyCorrect=`正解文は「${target.definition}」という定義の対象・目的・範囲を変えていない。`;
+    if(Number.isInteger(selected)&&selected!==correct){
+      result.whySelectedWrong=selectedReason||`この記述は「${target.term}」の定義「${target.definition}」と矛盾する。`;
+      result.repair=`誤答文を正しく直すなら、少なくとも「${target.term}は、${target.definition}」という定義と矛盾しない文にする必要がある。`;
+    }
+    result.boundary=l.family.trap||l.family.compare||'定義の対象・目的・範囲を変えていないかを見る。';
+    result.memory=`${target.term}＝${target.definition}`;
+    return result;
+  }
+  const selectedReason=Number.isInteger(selected)?q.reasons?.[selected]||'':'';
+  result.rule=q.brief||'問題文の条件を定義へ直接対応させる。';
+  result.path=[
+    `何を求めているかを固定する → ${q.brief||q.text}`,
+    q.detail||'与えられた条件を定義・式・境界へ当てはめる。',
+    `正解「${q.options?.[correct]||''}」がその条件を満たすことを確認する。`
+  ];
+  result.whyCorrect=`${q.options?.[correct]||'正解'}：${q.reasons?.[correct]||q.detail||'問題文の条件に一致する。'}`;
+  if(Number.isInteger(selected)&&selected!==correct){
+    result.whySelectedWrong=`${q.options?.[selected]||'選択した答え'}：${selectedReason||'問題文の条件と一致しない。'}`;
+    result.repair=`正しく考え直すと「${q.options?.[correct]||''}」。${q.reasons?.[correct]||q.detail||''}`;
+  }
+  result.boundary=l.family.compare||l.chapter.axis||'何を数えるか・何を境界にするか・何を分母にするかを確認する。';
+  result.memory=q.brief||q.detail||q.options?.[correct]||'';
+  return result;
+}
 function optionConcept(q,index){
   const text=String(q.options?.[index]||'');
   for(const id of q.optionConceptIds||[]){const concept=byId.get(id);if(concept&&concept.term===text)return concept;}
   const id=(q.optionConceptIds||[])[index];
   return id?byId.get(id):null;
 }
-return {lesson,optionConcept,optionNote,statementDiagnosis,byId,familyGuides,chapterGuides,typeGuides};
+return {lesson,coreExplanation,optionConcept,optionNote,statementDiagnosis,byId,familyGuides,chapterGuides,typeGuides};
 });
