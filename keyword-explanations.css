@@ -1,0 +1,13 @@
+/* Each choice gets its own dictionary entry, in the displayed A-D order. */
+.keyword-options{margin:20px 0 24px!important;padding:0!important;border:0!important}
+.keyword-options>h4{font-size:19px;margin:0 0 14px;line-height:1.6}
+.keyword-card{padding:17px!important;margin:0 0 15px!important;border:1px solid var(--line,#30445b);border-radius:14px;background:var(--surface,#142235)}
+.keyword-card .reason-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.keyword-card .reason-head>b{flex:1 1 240px;line-height:1.8;overflow-wrap:anywhere}
+.keyword-card .verdict{font-size:11px;white-space:normal}
+.keyword-definition{white-space:pre-line;line-height:1.9!important;margin:15px 0!important;font-size:15px;overflow-wrap:anywhere}
+.keyword-definition strong{font-size:16px;display:inline;color:var(--text,inherit)}
+.keyword-reason{margin-top:15px;border-top:1px solid var(--line,#30445b);padding-top:9px}
+.keyword-reason summary,.keyword-steps>summary{min-height:44px;cursor:pointer;padding:8px 0;line-height:1.7}
+.keyword-steps>.core-explanation{margin-top:14px}
+@media(max-width:430px){.keyword-card{padding:14px!important}.keyword-definition{font-size:15px}.keyword-options>h4{font-size:18px}}

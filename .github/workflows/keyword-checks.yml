@@ -1,0 +1,31 @@
+name: Keyword explanations checks
+on:
+  push:
+    paths:
+      - 'keyword-*'
+      - 'tests/keyword-*'
+      - 'practice.html'
+      - 'benchmark.html'
+      - 'index.html'
+      - 'sw.js'
+      - '.github/workflows/keyword-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and all regression tests
+        run: |
+          node --check keyword-explanations.js
+          node --check keyword-ui.js
+          node --test tests/*.test.cjs
+      - name: Browser dependencies
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Keyword rendering, no answer leakage, persistence and offline behavior
+        run: python tests/keyword-browser-smoke.py
