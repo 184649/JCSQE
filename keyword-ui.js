@@ -1,8 +1,9 @@
-/* Additive presentation adapter; scoring, session state and localStorage are untouched. */
+/* Additive presentation adapter; base app version, scoring, session state and localStorage are untouched. */
 (() => {
 'use strict';
 const K=window.JCSQEKeywords;
 if(!K)return;
+document.documentElement.dataset.keywordRevision=K.version;
 if(window.JCSQETextbook)window.JCSQETextbook.optionNote=(q,index)=>K.notes(q,index);
 const C=window.JCSQEStudy;
 if(C){const catalog=C.catalog;C.catalog=(...args)=>{const c=catalog(...args);return {...c,groups:c.groups.map(g=>({...g,question:K.decorate(g.question)})),questions:new Map([...c.questions].map(([id,q])=>[id,K.decorate(q)]))};};}
