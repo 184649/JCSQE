@@ -1,12 +1,13 @@
-"""Benchmark v15 browser integration test."""
+"""Benchmark browser integration test: definitions first, optional reasoning."""
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-import json, os, threading
+import json, os, re, threading
 from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[1]
 KEY='jcsqe-shokyu-state-v3'
+CACHE=re.search(r"const CACHE='([^']+)'",(ROOT/'sw.js').read_text()).group(1)
 checks=[];errors=[]
 def ok(x): checks.append(x); print('PASS',x,flush=True)
 class Quiet(SimpleHTTPRequestHandler):
@@ -52,14 +53,18 @@ try:
     page.locator('[data-act="finish"]').click()
     page.locator('.result-score').wait_for()
     assert page.locator('.result-question').count()==40
-    page.locator('.result-question').first.click()
+    page.locator('.result-question').first.evaluate('(el)=>el.open=true')
+    page.locator('.keyword-options').first.wait_for()
+    assert page.locator('.keyword-card').count()==160
+    assert page.locator('.keyword-steps[open]').count()==0
+    page.locator('.keyword-steps>summary').first.click()
     assert page.locator('.core-explanation').count()>=1
     assert page.get_by_role('heading',name='この問題の核心').count()>=1
     assert page.get_by_text('判断基準',exact=True).count()>=1
     assert page.locator('.textbook-deep[open]').count()==0
     page.locator('.textbook-deep>summary').first.click()
     assert page.locator('.textbook-option').count()>=4
-    ok('submitted form reveals core-first explanations with optional textbook detail')
+    ok('submitted form shows per-option definitions with optional reasoning and textbook detail')
     page.locator('[data-act="home"]').click()
     assert page.get_by_text('1/10',exact=True).count()>=1
     assert page.get_by_text('40/400',exact=True).count()>=1
@@ -74,9 +79,9 @@ try:
     page.get_by_role('heading',name='本番校正 第2回').wait_for()
     ok('scheduled plan deep-links to exact benchmark form')
     page.wait_for_function('!!navigator.serviceWorker.controller',timeout=30000)
-    assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-7-20261013');return !!(await c.match('./benchmark.html'));}")
+    assert page.evaluate("async name=>{const c=await caches.open(name);return !!(await c.match('./benchmark.html'));}",CACHE)
     ctx.set_offline(True);page.reload();page.get_by_text('本番80%への積み上げ').wait_for()
-    ok('benchmark page reloads offline from v15 cache')
+    ok('benchmark page reloads offline from the current app cache')
     assert not errors,errors
     browser.close()
 finally:

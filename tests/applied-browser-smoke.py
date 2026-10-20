@@ -4,13 +4,14 @@ Run after: pip install playwright==1.57.0 && playwright install --with-deps chro
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-import json, os, threading
+import json, os, re, threading
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'test-results'
 OUT.mkdir(exist_ok=True)
 KEY = 'jcsqe-shokyu-state-v3'
+CACHE = re.search(r"const CACHE='([^']+)'", (ROOT/'sw.js').read_text()).group(1)
 checks, errors = [], []
 def passed(label):
     checks.append(label)
@@ -85,16 +86,20 @@ try:
         wrong=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];const q=s.snapshots[id];return [0,1,2,3].find(x=>x!==q.correct)}''',KEY)
         page.locator(f'[data-act="answer"][data-choice="{wrong}"]').click()
         page.locator('.feedback').wait_for()
+        page.locator('.keyword-options').wait_for()
+        assert page.locator('.keyword-card').count()==4
+        assert page.locator('.keyword-steps[open]').count()==0
+        page.locator('.keyword-steps>summary').click()
         assert page.locator('.core-explanation').count()==1
         assert page.get_by_role('heading',name='この問題の核心').count()==1
         assert page.get_by_text('判断基準',exact=True).count()==1
         assert page.get_by_text('問題文の決め手',exact=True).count()==1
         assert page.get_by_text('正解までの一本道',exact=True).count()==1
-        assert page.get_by_text('あなたの選択肢がダメな1点',exact=True).count()==1
+        assert page.get_by_text('選択した答えと設問の違い',exact=True).count()==1
         assert page.locator('.textbook-deep[open]').count()==0
         page.locator('.textbook-deep>summary').click()
         assert page.locator('.textbook-option').count()==4
-        passed('continuous dojo shows core reasoning first and textbook detail on demand')
+        passed('continuous dojo shows keyword definitions first and preserves optional core reasoning and textbook detail')
 
         first_id=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;return s.questionIds[s.index]}''',KEY)
         page.locator('[data-act="continuous-next"]').click()
@@ -103,7 +108,6 @@ try:
         assert page.locator('.feedback').count()==0
         passed('next question is appended automatically without choosing a set size')
 
-        # Answer several questions and verify no duplicate within the live cycle.
         for _ in range(7):
             correct=page.evaluate('''key=>{const s=JSON.parse(localStorage.getItem(key)).profiles.fixture.appliedStudy.active;const id=s.questionIds[s.index];return s.snapshots[id].correct}''',KEY)
             page.locator(f'[data-act="answer"][data-choice="{correct}"]').click()
@@ -190,7 +194,7 @@ try:
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
         passed('existing homepage launches continuous dojo while keeping legacy access')
         page.wait_for_function('!!navigator.serviceWorker.controller')
-        assert page.evaluate("async()=>{const c=await caches.open('jcsqe-shokyu-v15-7-20261013');return !!(await c.match('./practice.html'));}")
+        assert page.evaluate("async name=>{const c=await caches.open(name);return !!(await c.match('./practice.html'));}", CACHE)
         ctx.set_offline(True)
         page.reload()
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
