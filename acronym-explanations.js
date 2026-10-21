@@ -89,8 +89,7 @@
  ['OS','Operating System','基本ソフトウェア'],
  ['KPI','Key Performance Indicator','重要業績評価指標'],
  ['QA','Quality Assurance','品質保証'],
- ['QC','Quality Control','品質管理'],
- ['JCSQE','Japanese Certification Scheme for Software Quality Engineers','ソフトウェア品質技術者資格認定制度']
+ ['QC','Quality Control','品質管理']
  ];
  const entries=rows.map(([short,english,japanese,note=''])=>Object.freeze({short,english,japanese,note}));
  const word=c=>/[A-Za-z0-9_]/.test(c||'');
