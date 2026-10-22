@@ -7,6 +7,8 @@ on:
       - 'practice.html'
       - 'practice-bank-v15.js'
       - 'textbook-v15.js'
+      - 'cumulative-*'
+      - 'tests/cumulative*'
       - 'tests/continuous-practice*'
       - 'tests/textbook*'
       - 'tests/core-explanation*'
@@ -23,6 +25,8 @@ on:
       - 'practice.html'
       - 'practice-bank-v15.js'
       - 'textbook-v15.js'
+      - 'cumulative-*'
+      - 'tests/cumulative*'
       - 'tests/continuous-practice*'
       - 'tests/textbook*'
       - 'tests/core-explanation*'
@@ -56,6 +60,7 @@ jobs:
           node --check benchmark-bank.js
           node --check benchmark-engine.js
           node --check benchmark-ui.js
+          node --check cumulative-stats.js
           node --check sw.js
       - name: Install browser test dependencies
         run: |
@@ -65,3 +70,5 @@ jobs:
         run: python tests/applied-browser-smoke.py
       - name: Test benchmark scoring, progress and offline routes
         run: python tests/benchmark-browser-smoke.py
+      - name: Test cumulative correct counts, percentages and preservation
+        run: python tests/cumulative-browser-smoke.py

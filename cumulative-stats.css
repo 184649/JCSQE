@@ -1,0 +1,8 @@
+/* Three responsive metrics; no fixed overlay, no clipping on narrow phone screens. */
+.cumulative-scoreboard{margin:0 0 20px;min-width:0}
+.cumulative-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cumulative-metric{min-width:0;padding:14px 12px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.cumulative-metric strong{display:block;font-size:clamp(18px,5vw,26px);font-variant-numeric:tabular-nums;line-height:1.5;overflow-wrap:anywhere;color:var(--text)}
+.cumulative-metric span{display:block;font-size:12px;line-height:1.7;color:var(--muted)}
+.cumulative-note{font-size:11px;line-height:1.7;color:var(--muted);margin:8px 0 0;overflow-wrap:anywhere}
+@media(max-width:360px){.cumulative-grid{gap:6px}.cumulative-metric{padding:11px 8px}.cumulative-metric span{font-size:11px}}
