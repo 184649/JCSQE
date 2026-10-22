@@ -87,7 +87,7 @@ try:
         counts(3, 1, '33.3%')
         page.reload()
         counts(3, 1, '33.3%')
-        page.locator('[data-act="history"]').click()
+        page.locator('nav [data-act="history"]').click()
         counts(3, 1, '33.3%')
         raw = page.evaluate('key => localStorage.getItem(key)', KEY)
         page.evaluate('''key => {
@@ -104,7 +104,7 @@ try:
           localStorage.setItem(key,JSON.stringify(s));
         }''', KEY)
         page.reload()
-        page.locator('[data-act="history"]').click()
+        page.locator('nav [data-act="history"]').click()
         original_id = page.locator('#profile').input_value()
         page.locator('#profile').select_option('other')
         counts(0, 0, '—')
@@ -112,7 +112,7 @@ try:
         counts(3, 1, '33.3%')
         ok('profile switching uses that profile only and retains existing history')
 
-        page.locator('[data-act="home"]').click()
+        page.locator('nav [data-act="home"]').click()
         page.wait_for_function('!!navigator.serviceWorker.controller')
         context.set_offline(True)
         page.reload()
