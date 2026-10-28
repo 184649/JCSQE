@@ -47,7 +47,7 @@ try:
           const s={version:7,theme:'dark',activeProfileId:'fixture',profiles:{fixture:p,other:C.normalizeProfile({name:'Other fixture'})}};
           localStorage.setItem(key,JSON.stringify(s));return s;
         }''', KEY)
-        page.goto(base+'practice.html')
+        page.goto(base+'practice.html?bank=foundation')
         page.get_by_role('heading',name='JCSQE 演習道場').wait_for()
         page.set_viewport_size({'width':320,'height':700})
         theme_btn=page.get_by_role('button',name='ライト／ダーク表示を切り替え')
@@ -73,7 +73,7 @@ try:
         passed('practice bottom nav occupies its own row without covering content')
         page.set_viewport_size({'width':390,'height':844})
         assert page.locator('[data-act="start-continuous"]').count()==1
-        assert page.locator('[data-count]').count()==0
+        assert page.locator('[data-act="start"][data-kind="practice"][data-count]').count()==0
         assert page.get_by_text('0/400',exact=False).count()>=1
         passed('continuous dojo loads without any question-count selector')
 

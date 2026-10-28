@@ -21,7 +21,7 @@ try:
   page=ctx.new_page();page.on('pageerror',lambda e:errors.append(str(e)));page.on('dialog',lambda d:d.accept())
   page.goto(base+'index.html?legacy=1');page.wait_for_function('!!window.JCSQEAcronyms')
   page.wait_for_function('!!navigator.serviceWorker.controller',timeout=30000)
-  page.goto(base+'practice.html');page.wait_for_function('!!window.JCSQEApplied')
+  page.goto(base+'practice.html?bank=foundation');page.wait_for_function('!!window.JCSQEApplied')
   fixture=page.evaluate('''key=>{
    const E=window.JCSQEApplied,data=window.JCSQEAppliedBank;
    const q=data.questions.find(q=>q.type==='scenario-selection'&&q.options.includes('CMMI'));
