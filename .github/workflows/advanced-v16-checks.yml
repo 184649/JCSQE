@@ -1,0 +1,40 @@
+name: Advanced syllabus v16 checks
+on:
+  push:
+    paths:
+      - 'advanced-*'
+      - 'practice.html'
+      - 'sw.js'
+      - 'tests/advanced*'
+      - '.github/workflows/advanced-v16-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: All regression tests and independent numeric oracles
+        run: |
+          node --test tests/*.test.cjs
+          for f in advanced-*.js; do node --check "$f"; done
+          node --check sw.js
+      - name: Browser dependencies
+        run: |
+          python -m pip install playwright==1.57.0
+          python -m playwright install --with-deps chromium
+      - name: Advanced routes, history, keyword definitions and offline rendering
+        run: python tests/advanced-browser-smoke.py
+      - name: Bundle exact source for visual review
+        if: always()
+        run: |
+          mkdir -p ci-evidence/v16
+          git archive --format=zip --output=ci-evidence/v16/source.zip HEAD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: advanced-v16-evidence
+          path: ci-evidence/v16
+          retention-days: 7
