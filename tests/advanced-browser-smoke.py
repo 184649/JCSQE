@@ -44,6 +44,8 @@ try:
         assert page.locator('.advanced-table tbody tr').count() > 80
         assert page.locator('#advanced-coverage').inner_text().find('全用語') >= 0
         page.screenshot(path=str(OUT/'mobile-coverage.png'), full_page=True)
+        page.locator('.advanced-table').first.scroll_into_view_if_needed()
+        page.screenshot(path=str(OUT/'mobile-scope-table.png'), full_page=True)
         page.locator('#advanced-coverage > summary').click()
         ok('default stronger bank and explicit section-level coverage')
         page.locator('[data-act="start-continuous"]').click()
@@ -52,6 +54,7 @@ try:
         assert page.locator('.keyword-options .textbook-option').count() == 4
         assert page.locator('[data-cumulative-value="answered"]').inner_text() == '1問'
         assert page.locator('[data-cumulative-value="correct"]').inner_text() == '1問'
+        page.locator('.keyword-card').first.scroll_into_view_if_needed()
         page.screenshot(path=str(OUT/'mobile-explanations.png'), full_page=True)
         page.locator('[data-act="continuous-next"]').click()
         snapshot = page.evaluate("""() => {const s=JSON.parse(localStorage.getItem('jcsqe-shokyu-state-v3'));const a=s.profiles[s.activeProfileId].appliedStudy.active;return [a.questionIds[a.index],a.orders[a.questionIds[a.index]]];}""")
@@ -85,7 +88,6 @@ try:
         ok('section drill and mobile width fit')
         page.goto(BASE+'/practice.html?bank=advanced')
         page.wait_for_selector('#advanced-controls')
-        # A deterministic new question checks nested terminology and expansions.
         page.evaluate("""() => {const key='jcsqe-shokyu-state-v3',s=JSON.parse(localStorage.getItem(key)),p=s.profiles[s.activeProfileId],E=window.JCSQEApplied;E.createSession(E.bank([window.JCSQEAdvancedBank.byId.get('H16-323')]),p,{count:1,kind:'practice',continuous:true});localStorage.setItem(key,JSON.stringify(s));}""")
         page.reload(); page.wait_for_selector('[data-act="resume"]'); page.locator('[data-act="resume"]').click()
         assert page.locator('.keyword-options').count() == 0
@@ -107,9 +109,12 @@ try:
         page.wait_for_selector('.result-item')
         assert page.locator('.result-item').count() == 40
         ok('strong 40-question timed practice never reveals answers before submission')
-        # Standalone old filtered session: preserved source/answers/order when opening the new entrypoint.
         old = browser.new_context(viewport={'width':390,'height':844})
         op = old.new_page(); op.on('dialog', lambda d: d.accept())
+        # Let the initial service-worker activation/reload finish before seeding an old profile.
+        op.goto(BASE+'/index.html?legacy=1')
+        op.wait_for_function('!!navigator.serviceWorker.controller', timeout=30000)
+        op.wait_for_function("!!document.querySelector('main#main')")
         op.goto(BASE+'/practice.html?bank=foundation'); op.wait_for_selector('#advanced-controls')
         op.evaluate("""() => {const key='jcsqe-shokyu-state-v3',s=JSON.parse(localStorage.getItem(key)),p=s.profiles[s.activeProfileId],E=window.JCSQEApplied;p.keepMe={oldHistory:[1,2,3]};const r=E.createSession(E.bank(window.JCSQEPracticeBank),p,{count:1,kind:'practice',continuous:true,topic:'C092'});delete r.session.trainingBank;delete r.session.syllabusUnit;localStorage.setItem(key,JSON.stringify(s));}""")
         op.goto(BASE+'/practice.html'); op.wait_for_selector('[data-act="resume"]'); op.locator('[data-act="resume"]').click()
