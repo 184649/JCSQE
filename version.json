@@ -1,9 +1,10 @@
 {
- "version":"15.7",
- "explanationVersion":"15.8",
- "acronymVersion":"15.9",
- "statsVersion":"15.10",
- "curriculumVersion":"16.0",
- "publishedAt":"2026-10-29",
- "label":"強化問題156問・シラバス項目対応表、既存400問と履歴を保全"
+  "version": "17.0",
+  "explanationVersion": "15.8",
+  "acronymVersion": "15.9",
+  "statsVersion": "15.10",
+  "curriculumVersion": "16.0",
+  "publishedAt": "2026-11-02",
+  "label": "公式公開過去問を参考にした独自実戦80問・40問×2回・12日間計画。既存問題・履歴は保全",
+  "cramVersion": "17.0"
 }
