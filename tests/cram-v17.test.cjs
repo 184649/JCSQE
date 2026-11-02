@@ -45,6 +45,7 @@ test('Original application assets and local state compatibility are retained',()
  assert.match(html,/cram-link-v17\.js/);
  assert.match(cram,/cram-q-extra-v17\.js/);
  assert.match(sw,/cram\.html/);
+ assert.match(sw,/url\.pathname\.endsWith\('\/cram\.html'\)/);
  assert.match(sw,/cram-q-extra-v17\.js/);
  assert.match(fs.readFileSync(path.join(dir,'cram-ui-v17.js'),'utf8'),/jcsqe-shokyu-state-v3/);
 });
