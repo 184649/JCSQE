@@ -8,7 +8,7 @@ self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=
 self.addEventListener('fetch',event=>{
  const req=event.request,url=new URL(req.url);if(req.method!=='GET'||url.origin!==self.location.origin||!url.href.startsWith(self.registration.scope))return;
  if(req.mode==='navigate'){
-  const pageKey=url.pathname.endsWith('/practice.html')?'./practice.html':url.pathname.endsWith('/benchmark.html')?'./benchmark.html':'./index.html';
+  const pageKey=url.pathname.endsWith('/practice.html')?'./practice.html':url.pathname.endsWith('/benchmark.html')?'./benchmark.html':url.pathname.endsWith('/cram.html')?'./cram.html':'./index.html';
   event.respondWith(fetch(req).then(res=>{if(res.ok){const copy=res.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(pageKey,copy)));}return res;}).catch(()=>caches.open(CACHE).then(cache=>cache.match(pageKey))));return;
  }
  event.respondWith(caches.open(CACHE).then(cache=>cache.match(req).then(hit=>hit||fetch(req).then(res=>{if(res.ok)event.waitUntil(cache.put(req,res.clone()));return res;}))));
