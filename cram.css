@@ -4,7 +4,7 @@
 *{box-sizing:border-box}body{background:var(--bg);color:var(--text);margin:0;min-height:100dvh}a{color:var(--accent);text-underline-offset:3px}button,select,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.47;cursor:not-allowed}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(9px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 9px max(16px,env(safe-area-inset-left));display:flex;justify-content:space-between;align-items:center;gap:10px}
 header .brand{font-weight:800;color:var(--text);text-decoration:none;line-height:1.35;font-size:15px;min-width:0}header .brand small{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-top:3px}
-header .header-right{display:flex;gap:8px;align-items:center;flex-shrink:0}main.cram{width:min(100%,930px);margin:auto;padding:22px max(17px,env(safe-area-inset-right)) calc(65px + env(safe-area-inset-bottom)) max(17px,env(safe-area-inset-left))}
+header .header-right{display:flex;gap:8px;align-items:center;flex-shrink:0}#cram-app main{width:min(100%,930px);margin:auto;padding:22px max(17px,env(safe-area-inset-right)) calc(65px + env(safe-area-inset-bottom)) max(17px,env(safe-area-inset-left))}
 h1{font-size:clamp(26px,5.5vw,40px);line-height:1.35;letter-spacing:-.035em;margin:0 0 12px}h2{font-size:21px;line-height:1.45;margin:0 0 11px}h3{font-size:17px;margin:0 0 8px}p{margin:0 0 12px}p:last-child{margin:0}.muted{color:var(--muted)}.small{font-size:13px}.tiny{font-size:12px}
 .eyebrow{font-weight:800;letter-spacing:.1em;font-size:12px;color:var(--accent);margin-bottom:9px}.intro{padding:15px 2px 14px}.intro p{max-width:700px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:19px;box-shadow:var(--shadow);padding:21px;margin-bottom:18px}.panel.flat{box-shadow:none}
@@ -23,4 +23,66 @@ label{display:block;font-weight:700;font-size:14px;margin-bottom:5px}select{widt
 .data-table{width:100%;border-collapse:collapse;font-size:13px;margin:13px 0}.data-table th,.data-table td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left}.data-table th:last-child,.data-table td:last-child{text-align:right}.pill{display:inline-block;border-radius:30px;padding:2px 9px;background:var(--soft);font-size:12px}.failed{color:var(--bad);font-weight:800}.passed{color:var(--good);font-weight:800}.result-question{margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:12px}.result-question h3{margin:0 0 8px}.result-question .answerline{font-size:14px;margin-bottom:10px}
 details{margin-top:12px}details>summary{cursor:pointer;font-weight:750;padding:8px 0}.focus-links{display:flex;flex-wrap:wrap;gap:7px}.focus-links button{font-size:13px}.jumpmenu{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.jumpmenu button{border:1px solid var(--line);background:var(--soft);color:var(--text);min-width:36px;min-height:36px;border-radius:8px;font-size:12px}.jumpmenu button.current{border-color:var(--accent);font-weight:800}
 .footer{border-top:1px solid var(--line);padding-top:18px;margin-top:25px;font-size:12px;color:var(--muted)}
-@media(max-width:560px){.grid{grid-template-columns:1fr}.stats{gap:6px}.stat{padding:10px 7px}.stat strong{font-size:20px}.panel{padding:16px;border-radius:15px}main.cram{padding-top:14px}.question{font-size:16px}.option{font-size:15px;padding:12px}.mock-card h3{font-size:17px}.exam-top .timer{font-size:19px}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.stats{gap:6px}.stat{padding:10px 7px}.stat strong{font-size:20px}.panel{padding:16px;border-radius:15px}#cram-app main{padding-top:14px}.question{font-size:16px}.option{font-size:15px;padding:12px}.mock-card h3{font-size:17px}.exam-top .timer{font-size:19px}}
+
+
+/* Layout for the timed mock and spaced review screens. */
+#cram-app>main{min-height:67vh;max-width:930px;margin:0 auto;padding:18px 20px 58px;}
+#cram-app .hdr>a{color:var(--text);text-decoration:none;line-height:1.45}
+#cram-app .hdr>a small{display:block;color:var(--muted);font-size:11px;font-weight:450}
+#cram-app button[data-act]{min-height:43px;border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:var(--soft);color:var(--text);font-weight:700}
+#cram-app button[data-act].primary{background:var(--accent);color:var(--accenttext);border-color:var(--accent)}
+#cram-app button[data-act]:hover{filter:brightness(1.05)}
+#cram-app .nav{display:flex;gap:7px;padding:9px max(16px,env(safe-area-inset-left));border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;max-width:930px;margin:0 auto}
+#cram-app .nav>*{font-size:12px;min-width:0;flex:1 0 auto;text-align:center}
+#cram-app .nav a{border:1px solid var(--line);background:var(--soft);border-radius:9px;text-decoration:none;padding:9px 12px;font-size:12px;font-weight:750}
+#cram-app .hero{margin:0 0 25px;padding-top:10px}
+#cram-app .hero p{max-width:690px}
+#cram-app .hero h1 em{font-style:normal;color:var(--accent)}
+#cram-app .twocol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}
+#cram-app .form-card{display:flex;flex-direction:column;align-items:start;gap:8px}
+#cram-app .form-card h2{margin:0}
+#cram-app .form-card .score{font-size:35px;line-height:1.25;display:block;margin:3px 0}
+#cram-app .form-card .score small{font-size:14px;color:var(--muted)}
+#cram-app .form-card button[data-act]{margin-top:auto;width:100%}
+#cram-app .today{border-color:var(--accent)}
+#cram-app .today>button{margin-top:7px}
+#cram-app .warning{border-left:3px solid var(--bad);padding:13px;background:var(--soft);border-radius:11px;margin:8px 0 16px}
+#cram-app .muted{color:var(--muted)}
+#cram-app .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+#cram-app .chips>span{background:var(--soft);border:1px solid var(--line);border-radius:18px;padding:4px 9px;font-size:12px}
+#cram-app .plan{display:grid;gap:10px}
+#cram-app .plan>.panel{margin:0;padding:16px}
+#cram-app .plan label{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#cram-app .plan label input{width:18px;height:18px;accent-color:var(--accent)}
+#cram-app .plan label span{font-size:11px;color:var(--accent)}
+#cram-app .plan>.panel a{display:inline-flex;border:1px solid var(--line);padding:7px 11px;background:var(--soft);border-radius:10px;text-decoration:none}
+#cram-app .quizhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 15px}
+#cram-app .quizhead p{font-size:12px;color:var(--muted)}
+#cram-app #clock{font-size:22px;font-variant-numeric:tabular-nums}
+#cram-app .progress{height:10px;background:var(--soft);border-radius:20px;overflow:hidden;margin:12px 0 20px}
+#cram-app .progress>i{display:block;background:var(--accent);height:100%;transition:width .2s}
+#cram-app .question{white-space:normal;margin-bottom:14px}
+#cram-app .question h2{font-size:19px;line-height:1.75;white-space:pre-line}
+#cram-app .options{display:grid;gap:10px}
+#cram-app .options button.option{margin:0;width:100%;display:flex;gap:11px;align-items:start;padding:14px 12px;min-height:59px;line-height:1.6;font-size:15px;font-weight:500;text-align:left;background:var(--soft);border-color:var(--line)}
+#cram-app .options button.option.selected{border-color:var(--accent);background:var(--soft);box-shadow:inset 0 0 0 1px var(--accent)}
+#cram-app .options button.option b{display:grid;place-items:center;min-width:29px;height:29px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:13px;line-height:1;flex:none}
+#cram-app .actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+#cram-app .actions button{flex:1 1 142px}
+#cram-app .center{text-align:center}
+#cram-app .bigscore{font-size:clamp(40px,10vw,65px)}
+#cram-app .bigscore small{font-size:18px;display:block;color:var(--muted)}
+#cram-app .metricrow{margin:12px 0}
+#cram-app .metricrow>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+#cram-app .bar{height:8px;background:var(--soft);border-radius:15px;overflow:hidden;margin-top:5px}
+#cram-app .bar i{background:var(--accent);height:100%;display:block}
+#cram-app .reason{border:1px solid var(--line);background:var(--soft);border-radius:11px;padding:12px 14px;margin:10px 0;font-size:14px}
+#cram-app .reason summary{cursor:pointer;overflow-wrap:anywhere}
+#cram-app .reason ol,#cram-app .reveal ol{padding-left:26px}
+#cram-app .reason li{margin:12px 0;font-size:13px;line-height:1.6}
+#cram-app .reason li p{font-size:12px;color:var(--muted)}
+#cram-app .reveal{margin-top:15px;padding:15px;border-radius:11px;background:var(--surface);border:1px solid var(--line)}
+#cram-app .reveal h3{margin-bottom:7px}
+#cram-app .footer{max-width:930px;margin:14px auto 0;padding:20px 18px 40px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+@media(max-width:560px){#cram-app .twocol{grid-template-columns:1fr}#cram-app .quizhead{align-items:start}#cram-app .question h2{font-size:17px}#cram-app #clock{font-size:20px}#cram-app .form-card{gap:5px}#cram-app .nav>*{flex:0 0 auto}#cram-app>main{padding:14px 16px 50px}}
