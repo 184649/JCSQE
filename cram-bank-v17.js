@@ -5,7 +5,7 @@ const parts=window.JCSQECramParts||[];
 if(parts.length!==7)throw Error('実戦問題の分野別ファイルが不足しています。');
 const rows=parts.flat(), ids=new Set(), stems=new Set(), scope=window.JCSQEAdvancedScope;
 const chapterNames={1:'品質の概念',2:'品質マネジメント',3:'品質技術',4:'専門品質',5:'新領域'};
-const expected={1:8,2:16,3:36,4:10,5:10}, groups={1:[],2:[],3:[],4:[],5:[]};
+const expected={1:8,2:16,3:32,4:12,5:12}, groups={1:[],2:[],3:[],4:[],5:[]};
 for(const row of rows){
  const [id,syllabus,level,kind,text,options,notes,correct,why]=row;
  const chap=Number((id||'').match(/^X17-([1-5])\d{2}$/)?.[1]);
