@@ -16,7 +16,7 @@ test('80 original tasks, stable and disjoint forms',()=>{
  assert.equal(new Set(b.questions.map(q=>q.text)).size,80);
  const formA=new Set(b.forms.A.map(q=>q.id)),formB=new Set(b.forms.B.map(q=>q.id));
  assert.equal([...formA].filter(id=>formB.has(id)).length,0);
- assert.deepEqual([...formA,...formB].sort(),b.questions.map(q=>q.id).sort());
+ assert.deepEqual([...formA,...formB].sort(),Array.from(b.questions,q=>q.id).sort());
 });
 test('All five syllabus chapters have balanced representation in both mocks',()=>{
  const b=load(),expected=[4,8,16,6,6];
